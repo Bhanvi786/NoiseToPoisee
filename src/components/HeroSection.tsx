@@ -123,7 +123,7 @@ export default function HeroSection() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="lg:col-span-5 flex flex-col justify-center space-y-8"
+          className="lg:col-span-5 flex flex-col justify-center space-y-8 lg:-translate-y-10"
         >
           {/* Quote */}
           <div className="overflow-hidden">
