@@ -213,7 +213,7 @@ export default function HeroSection() {
             variants={collageItemVariants(0)}
             initial="hidden"
             animate="visible"
-            className="absolute top-[4%] left-[26%] w-[27%] aspect-[3/4] z-30 border border-white/10 rotate-[-1deg]"
+            className="absolute top-[-4%] left-[26%] w-[27%] aspect-[3/4] z-30 border border-white/10 rotate-[-1deg]"
             style={{
               x: p1X,
               y: p1Y,
@@ -236,7 +236,7 @@ export default function HeroSection() {
             variants={collageItemVariants(1)}
             initial="hidden"
             animate="visible"
-            className="absolute top-[12%] left-[44%] w-[35%] aspect-[4/3] z-40 border border-white/10 rotate-[1deg]"
+            className="absolute top-[10%] left-[48%] w-[35%] aspect-[4/3] z-40 border border-white/10 rotate-[1deg]"
             style={{
               x: p2X,
               y: p2Y,
@@ -259,7 +259,7 @@ export default function HeroSection() {
             variants={collageItemVariants(2)}
             initial="hidden"
             animate="visible"
-            className="absolute top-[29%] left-[16%] w-[28%] aspect-square z-20 border border-white/10 rotate-[0.5deg]"
+            className="absolute top-[32%] left-[12%] w-[28%] aspect-square z-20 border border-white/10 rotate-[0.5deg]"
             style={{
               x: p3X,
               y: p3Y,
@@ -281,7 +281,7 @@ export default function HeroSection() {
             variants={collageItemVariants(3)}
             initial="hidden"
             animate="visible"
-            className="absolute top-[29%] left-[36%] w-[28%] aspect-square z-20 border border-white/10 rotate-[-1.5deg]"
+            className="absolute top-[32%] left-[38%] w-[28%] aspect-square z-20 border border-white/10 rotate-[-1.5deg]"
             style={{
               x: p4X,
               y: p4Y,
@@ -303,7 +303,7 @@ export default function HeroSection() {
             variants={collageItemVariants(4)}
             initial="hidden"
             animate="visible"
-            className="absolute top-[49%] left-[8%] w-[34%] aspect-[4/3] z-30 border border-white/10 rotate-[1.2deg]"
+            className="absolute top-[56%] left-[4%] w-[34%] aspect-[4/3] z-30 border border-white/10 rotate-[1.2deg]"
             style={{
               x: p5X,
               y: p5Y,
@@ -325,7 +325,7 @@ export default function HeroSection() {
             variants={collageItemVariants(5)}
             initial="hidden"
             animate="visible"
-            className="absolute top-[49%] left-[32%] w-[28%] aspect-square z-30 border border-white/10 rotate-[-0.8deg]"
+            className="absolute top-[56%] left-[36%] w-[28%] aspect-square z-30 border border-white/10 rotate-[-0.8deg]"
             style={{
               x: p6X,
               y: p6Y,
@@ -347,7 +347,7 @@ export default function HeroSection() {
             variants={collageItemVariants(6)}
             initial="hidden"
             animate="visible"
-            className="absolute top-[38%] left-[54%] w-[16%] aspect-[1/2] z-35 border border-white/10 rotate-[1.5deg]"
+            className="absolute top-[40%] left-[60%] w-[16%] aspect-[1/2] z-35 border border-white/10 rotate-[1.5deg]"
             style={{
               x: p7X,
               y: p7Y,
