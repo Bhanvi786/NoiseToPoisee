@@ -41,7 +41,7 @@ export default function AboutSection() {
           >
             {/* Index Number */}
             <div className="flex items-baseline space-x-2 mb-6">
-              <span className="font-serif text-3xl text-wine font-light">02</span>
+              <span className="font-serif text-3xl text-wine font-light">03</span>
               <span className="h-[1px] w-12 bg-wine/20" />
               <span className="text-xs uppercase tracking-[0.25em] text-charcoal/40 font-sans">
                 The Profile
@@ -55,7 +55,7 @@ export default function AboutSection() {
                 className="w-full h-full relative"
               >
                 <Image
-                  src="/artwork/artist.png"
+                  src="/artwork/8.jpeg"
                   alt="Deepti Aroura in studio"
                   fill
                   sizes="(max-width: 1024px) 100vw, 40vw"

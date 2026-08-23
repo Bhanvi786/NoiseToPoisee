@@ -20,7 +20,7 @@ const artworks = [
     year: '2025',
     medium: 'Oil on Linen',
     dimensions: '40 × 50 inches',
-    image: '/artwork/woman_red.png',
+    image: '/artwork/1.jpeg',
     description: 'A study in quiet contemplation and emotional resonance. The heavy crimson red drapery forms a sanctuary around the subject, contrasting with the soft, warm golden light.',
   },
   {
@@ -30,7 +30,7 @@ const artworks = [
     year: '2026',
     medium: 'Oil on Canvas',
     dimensions: '48 × 48 inches',
-    image: '/artwork/two_women.png',
+    image: '/artwork/2.jpeg',
     description: 'Capturing the peaceful rhythms of domestic heritage in rural India. The textures of stone and cotton are rendered with intricate palette knife strokes.',
   },
   {
@@ -40,7 +40,7 @@ const artworks = [
     year: '2025',
     medium: 'Oil on Panel',
     dimensions: '36 × 36 inches',
-    image: '/artwork/red_tree.png',
+    image: '/artwork/3.jpeg',
     description: 'A landscape reflecting internal emotional states. The solitary red-leafed tree stands as a sentinel of patience amidst stormy, atmospheric skies.',
   },
   {
@@ -50,7 +50,7 @@ const artworks = [
     year: '2026',
     medium: 'Mixed Media Oil',
     dimensions: '60 × 60 inches',
-    image: '/artwork/abstract_red.png',
+    image: '/artwork/4.jpeg',
     description: 'An abstract expression of balance. Rich textures and bold sweeps of wine red intersect with charcoal and ivory, conveying a sense of resolved tension.',
   },
   {
@@ -60,7 +60,7 @@ const artworks = [
     year: '2025',
     medium: 'Oil on Panel',
     dimensions: '30 × 30 inches',
-    image: '/artwork/mudra.png',
+    image: '/artwork/5.jpeg',
     description: 'A close study of hand mudras in classical Indian dance. Symbolizing the unfolding of consciousness and poise in the center of mud and water.',
   },
   {
@@ -70,7 +70,7 @@ const artworks = [
     year: '2026',
     medium: 'Oil on Canvas',
     dimensions: '50 × 50 inches',
-    image: '/artwork/pillars.png',
+    image: '/artwork/6.jpeg',
     description: 'An architectural exploration of light and shadow in an ancient stone temple. The composition leads the eye through layers of intricate carvings toward a distant figure.',
   },
 ];
@@ -91,7 +91,7 @@ export default function CollectionsSection() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 space-y-6 md:space-y-0">
           <div className="space-y-4">
             <div className="flex items-baseline space-x-2">
-              <span className="font-serif text-3xl text-wine font-light">03</span>
+              <span className="font-serif text-3xl text-wine font-light">04</span>
               <span className="h-[1px] w-12 bg-wine/20" />
               <span className="text-xs uppercase tracking-[0.25em] text-charcoal/40 font-sans">
                 The Gallery

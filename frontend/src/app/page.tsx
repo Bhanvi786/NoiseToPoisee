@@ -1,6 +1,7 @@
 import SmoothScroll from "@/components/SmoothScroll";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
+import MasonryGallery from "@/components/MasonryGallery";
 import AboutSection from "@/components/AboutSection";
 import CollectionsSection from "@/components/CollectionsSection";
 import FeaturedPaintings from "@/components/FeaturedPaintings";
@@ -13,6 +14,7 @@ export default function Home() {
     <SmoothScroll>
       <Navbar />
       <HeroSection />
+      <MasonryGallery />
       <AboutSection />
       <CollectionsSection />
       <FeaturedPaintings />
@@ -22,3 +24,4 @@ export default function Home() {
     </SmoothScroll>
   );
 }
+

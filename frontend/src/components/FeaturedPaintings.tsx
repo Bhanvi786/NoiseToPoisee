@@ -8,7 +8,7 @@ const featured = [
     id: 1,
     title: 'Silence in Crimson',
     subtitle: 'Masterpiece 01',
-    image: '/artwork/woman_red.png',
+    image: '/artwork/1.jpeg',
     year: '2025',
     size: '40 × 50"',
     concept: 'An exploration of stillness. The drapery represents the emotional weight we carry, while the candle light symbolizes the internal spark of awareness.',
@@ -22,7 +22,7 @@ const featured = [
     id: 2,
     title: 'The Courtyard Thread',
     subtitle: 'Masterpiece 02',
-    image: '/artwork/two_women.png',
+    image: '/artwork/2.jpeg',
     year: '2026',
     size: '48 × 48"',
     concept: 'A silent dialogue between generations. The courtyard is rendered as an extension of the inner self, highlighting the thread that binds history and contemporary identity.',
@@ -48,7 +48,7 @@ export default function FeaturedPaintings() {
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Title */}
         <div className="mb-20 flex items-baseline space-x-2">
-          <span className="font-serif text-3xl text-wine font-light">04</span>
+          <span className="font-serif text-3xl text-wine font-light">05</span>
           <span className="h-[1px] w-12 bg-wine/20" />
           <span className="text-xs uppercase tracking-[0.25em] text-charcoal/40 font-sans">
             Featured Masterpieces
