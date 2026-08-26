@@ -140,7 +140,7 @@ export default function HeroSection() {
   // Parallax Scroll Y offsets for different depths (tuned for cinematic feel)
   const yTypographyVal = useTransform(scrollYProgress, [0, 1], [0, shouldReduceMotion ? 0 : -80]);
   const yHaloVal = useTransform(scrollYProgress, [0, 1], [0, shouldReduceMotion ? 0 : -60]);
-  
+
   // Layer 1 Y Offset (Background artworks 5 & 6) - conceptual speed 0.35
   const yBgScroll = useTransform(scrollYProgress, [0, 1], [0, shouldReduceMotion ? 0 : -110]);
   // Layer 2 Y Offset (Secondary artworks 2, 3 & 4) - conceptual speed 0.50
@@ -181,7 +181,7 @@ export default function HeroSection() {
 
   // Main Ganesha scales down from 1 to 0.92 between 50% and 75% scroll progress
   const mainScale = useTransform(scrollYProgress, [0, 0.5, 0.75, 1], [1, 1, 0.92, 0.92]);
-  
+
   // Secondary Artwork 2 scales up slightly to become prominent
   const scale2 = useTransform(scrollYProgress, [0, 0.5, 0.75, 1], [1, 1, 1.05, 1.05]);
 
@@ -231,10 +231,12 @@ export default function HeroSection() {
 
   const yPetals = useTransform([yPetalsScroll, mousePetalsY], ([scroll, mouse]) => Number(scroll) + Number(mouse));
 
+  const fadeOutScroll = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
+
   // Spotlight shifts computed based on mouse movements
   const spotX = useTransform(smoothX, [-0.5, 0.5], ["35%", "65%"]);
   const spotY = useTransform(smoothY, [-0.5, 0.5], ["20%", "50%"]);
-  
+
   // Highlight overlay gradient (shining on the canvas surface)
   const spotlightStyle = useMotionTemplate`radial-gradient(circle at ${spotX} ${spotY}, rgba(255, 252, 245, 0.18) 0%, rgba(20, 20, 20, 0.08) 55%, rgba(0, 0, 0, 0.38) 100%)`;
 
@@ -274,7 +276,7 @@ export default function HeroSection() {
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { duration: 1.5, ease: "easeOut" }
+      transition: { duration: 1.5, ease: "easeOut" as const }
     }
   };
 
@@ -283,7 +285,7 @@ export default function HeroSection() {
     visible: {
       opacity: 0.07,
       y: 0,
-      transition: { delay: 0.2, duration: 1.5, ease: "easeOut" }
+      transition: { delay: 0.2, duration: 1.5, ease: "easeOut" as const }
     }
   };
 
@@ -292,7 +294,7 @@ export default function HeroSection() {
     visible: {
       opacity: 1,
       scale: 1,
-      transition: { delay: 0.6, duration: 1.2, ease: [0.16, 1, 0.3, 1] }
+      transition: { delay: 0.6, duration: 1.2, ease: [0.16, 1, 0.3, 1] as const }
     }
   };
 
@@ -302,7 +304,7 @@ export default function HeroSection() {
       opacity: 0.85,
       scale: 1,
       y: 0,
-      transition: { delay: 1.1, duration: 1.2, ease: "easeOut" }
+      transition: { delay: 1.1, duration: 1.2, ease: "easeOut" as const }
     }
   };
 
@@ -316,15 +318,54 @@ export default function HeroSection() {
     >
       {/* Sticky screen container */}
       <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden">
-        
+
         {/* Dynamic plaster wall lighting spotlight gradient */}
-        <motion.div 
-          style={{ background: wallSpotlightStyle }} 
+        <motion.div
+          style={{ background: wallSpotlightStyle }}
           className="absolute inset-0 z-0 pointer-events-none"
         />
-        
+
         {/* Fine grain overlay for paper/plaster texture depth */}
         <div className="absolute inset-0 bg-transparent grain-overlay opacity-[0.06] z-0 pointer-events-none" />
+
+        {/* Corner Paint Stroke Overlay Accents (Maroon & Warm tones) */}
+        <motion.div style={{ opacity: fadeOutScroll }} className="absolute inset-0 pointer-events-none z-20">
+          {/* Top-Left Corner Paint Stroke */}
+          <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-0 left-0 w-36 sm:w-56 md:w-72 h-auto opacity-70">
+            <path d="M0 0 C 40 10, 80 5, 110 30 C 140 55, 120 120, 160 160 C 140 150, 100 130, 80 90 C 60 50, 20 40, 0 40 Z" fill="#5A121F" opacity="0.65" />
+            <path d="M0 0 C 30 20, 60 30, 80 60 C 100 90, 95 130, 120 150 C 100 135, 75 110, 60 80 C 45 50, 15 30, 0 25 Z" fill="#8F1D32" opacity="0.8" />
+            <path d="M0 0 C 20 15, 45 25, 55 45 C 65 65, 70 95, 90 110 C 80 100, 60 80, 50 60 C 40 40, 10 20, 0 15 Z" fill="#A64B2A" opacity="0.75" />
+            <path d="M5 0 C 15 10, 30 15, 38 30 C 46 45, 50 70, 65 80 C 58 75, 45 60, 38 45 C 30 30, 10 15, 5 10 Z" fill="#D49B41" opacity="0.5" />
+            <circle cx="95" cy="40" r="1.5" fill="#8F1D32" opacity="0.6" />
+            <circle cx="130" cy="85" r="1" fill="#A64B2A" opacity="0.5" />
+            <circle cx="50" cy="115" r="2" fill="#5A121F" opacity="0.7" />
+          </svg>
+
+          {/* Bottom-Left Corner Paint Stroke */}
+          <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute bottom-0 left-0 w-36 sm:w-56 md:w-72 h-auto opacity-70">
+            <path d="M0 200 C 40 190, 80 195, 110 170 C 140 145, 120 80, 160 40 C 140 50, 100 70, 80 110 C 60 150, 20 160, 0 160 Z" fill="#8F1D32" opacity="0.75" />
+            <path d="M0 200 C 30 180, 60 170, 80 140 C 100 110, 95 70, 120 50 C 100 65, 75 90, 60 120 C 45 150, 15 170, 0 175 Z" fill="#5A121F" opacity="0.7" />
+            <path d="M0 200 C 20 185, 45 175, 55 155 C 65 135, 70 105, 90 90 C 80 100, 60 120, 50 140 C 40 160, 10 180, 0 185 Z" fill="#A64B2A" opacity="0.8" />
+            <circle cx="95" cy="160" r="1.5" fill="#8F1D32" opacity="0.6" />
+            <circle cx="130" cy="115" r="1" fill="#D49B41" opacity="0.5" />
+          </svg>
+        </motion.div>
+
+        {/* TOP-LEFT: Near the noiseToPoise logo, add a very small hand-painted abstract brushstroke/artist mark */}
+        <div className="absolute top-6 sm:top-8 left-0 right-0 z-40 pointer-events-none">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 w-full relative">
+            <motion.div
+              style={{ opacity: fadeOutScroll }}
+              className="absolute left-[175px] sm:left-[190px] top-[4px]"
+            >
+              <svg width="28" height="14" viewBox="0 0 28 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-85">
+                <path d="M2 10C6 7.5 11.5 4.5 17 5C19.8 5.2 22 6.2 23.2 7.8C20.8 7 17.2 6.6 12.8 7C8.4 7.4 5.2 9.4 3.2 11C2.5 11.6 1.6 10.6 2 10Z" fill="#8F1D32" />
+                <circle cx="21" cy="9.5" r="0.7" fill="#8F1D32" />
+                <circle cx="23.5" cy="11" r="0.4" fill="#8F1D32" />
+              </svg>
+            </motion.div>
+          </div>
+        </div>
 
         {/* Decorative vertical indicators */}
         <div className="absolute left-6 md:left-12 top-1/2 -translate-y-1/2 hidden lg:flex flex-col items-center space-y-6 z-10 pointer-events-none">
@@ -342,7 +383,7 @@ export default function HeroSection() {
         </div>
 
         <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 items-center z-10 relative">
-          
+
           {/* LEFT COLUMN: Stable Editorial Typography */}
           <motion.div
             variants={containerVariants}
@@ -423,7 +464,7 @@ export default function HeroSection() {
 
           {/* RIGHT COLUMN: The Living Gallery Parallax Stack */}
           <div className="lg:col-span-7 flex justify-center items-center w-full relative h-[85vh] select-none">
-            
+
             {/* 1. Soft Terracotta Halo */}
             <motion.div
               variants={haloVariants}
@@ -446,13 +487,13 @@ export default function HeroSection() {
 
             {/* Main stack container spanning large viewport coordinates */}
             <div className="relative w-full h-full flex justify-center items-center translate-x-[120px] translate-y-8">
-              
+
               {/* STACK LAYERS */}
               <div className="absolute inset-0 w-full h-full">
                 {/* Layer 1 - Background Artwork 6 (Subtle Background, e.g. /artwork/6.jpeg) */}
                 <motion.div
                   style={{ y: yBg6, x: xBg6 }}
-                  className="absolute w-[24%] sm:w-[26%] lg:w-[28%] aspect-[3/4] left-[8%] top-[2%] z-10 select-none pointer-events-none opacity-90"
+                  className="absolute w-[19.2%] sm:w-[20.8%] lg:w-[22.4%] aspect-[3/4] left-[16.4%] top-[11.6%] z-10 select-none pointer-events-none opacity-90"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -480,7 +521,7 @@ export default function HeroSection() {
                 {/* Layer 1 - Background Artwork 7 (Top Center Gap) */}
                 <motion.div
                   style={{ y: yBg7, x: xBg7 }}
-                  className="absolute w-[22%] sm:w-[24%] lg:w-[26%] aspect-[3/4] left-[36%] top-[-10%] z-12 select-none pointer-events-none opacity-90"
+                  className="absolute w-[17.6%] sm:w-[19.2%] lg:w-[20.8%] aspect-[3/4] left-[38.8%] top-[2%] z-12 select-none pointer-events-none opacity-90"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -508,7 +549,7 @@ export default function HeroSection() {
                 {/* Layer 1 - Background Artwork 5 (Further Behind, e.g. /artwork/5.jpeg) */}
                 <motion.div
                   style={{ y: yBg5, x: xBg5 }}
-                  className="absolute w-[28%] sm:w-[30%] lg:w-[32%] aspect-[3/4] right-[4%] top-[4%] z-15 select-none pointer-events-none opacity-95"
+                  className="absolute w-[22.4%] sm:w-[24%] lg:w-[25.6%] aspect-[3/4] right-[13.2%] top-[13.2%] z-15 select-none pointer-events-none opacity-95"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -536,7 +577,7 @@ export default function HeroSection() {
                 {/* Layer 1 - Background Artwork 8 (Bottom Center Gap) */}
                 <motion.div
                   style={{ y: yBg8, x: xBg8 }}
-                  className="absolute w-[24%] sm:w-[26%] lg:w-[28%] aspect-[3/4] left-[32%] bottom-[2%] z-18 select-none pointer-events-none opacity-95"
+                  className="absolute w-[19.2%] sm:w-[20.8%] lg:w-[22.4%] aspect-[3/4] left-[35.6%] bottom-[11.6%] z-18 select-none pointer-events-none opacity-95"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -564,7 +605,7 @@ export default function HeroSection() {
                 {/* Layer 2 - Secondary Artwork 4 (Partially Visible, e.g. /artwork/4.jpeg) */}
                 <motion.div
                   style={{ y: ySec4, x: xSec4 }}
-                  className="absolute w-[30%] sm:w-[32%] lg:w-[34%] aspect-[3/4] left-[4%] bottom-[10%] z-20 select-none pointer-events-none opacity-100"
+                  className="absolute w-[24%] sm:w-[25.6%] lg:w-[27.2%] aspect-[3/4] left-[13.2%] bottom-[18%] z-20 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -592,7 +633,7 @@ export default function HeroSection() {
                 {/* Layer 2 - Secondary Artwork 9 (Left Center Gap) */}
                 <motion.div
                   style={{ y: ySec9, x: xSec9 }}
-                  className="absolute w-[26%] sm:w-[28%] lg:w-[30%] aspect-[3/4] left-[-10%] top-[24%] z-22 select-none pointer-events-none opacity-100"
+                  className="absolute w-[20.8%] sm:w-[22.4%] lg:w-[24%] aspect-[3/4] left-[2%] top-[29.2%] z-22 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -620,7 +661,7 @@ export default function HeroSection() {
                 {/* Layer 2 - Secondary Artwork 3 (Slightly Right and Lower, e.g. /artwork/3.jpeg) */}
                 <motion.div
                   style={{ y: ySec3, x: xSec3 }}
-                  className="absolute w-[33%] sm:w-[35%] lg:w-[37%] aspect-[3/4] right-[2%] bottom-[6%] z-25 select-none pointer-events-none opacity-100"
+                  className="absolute w-[26.4%] sm:w-[28%] lg:w-[29.6%] aspect-[3/4] right-[11.6%] bottom-[14.8%] z-25 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -648,7 +689,7 @@ export default function HeroSection() {
                 {/* Layer 2 - Secondary Artwork 10 (Right Center Gap) */}
                 <motion.div
                   style={{ y: ySec10, x: xSec10 }}
-                  className="absolute w-[28%] sm:w-[30%] lg:w-[32%] aspect-[3/4] right-[-15%] top-[22%] z-28 select-none pointer-events-none opacity-100"
+                  className="absolute w-[22.4%] sm:w-[24%] lg:w-[25.6%] aspect-[3/4] right-[-2%] top-[27.6%] z-28 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -679,7 +720,7 @@ export default function HeroSection() {
                   initial="hidden"
                   animate="visible"
                   style={{ y: yMain, x: xMain, scale: mainScale, boxShadow: shadowStyle }}
-                  className="absolute w-[44%] sm:w-[46%] lg:w-[48%] aspect-[3/4] z-40 left-[26%] top-[16%] transition-shadow duration-300 select-none"
+                  className="absolute w-[35.2%] sm:w-[36.8%] lg:w-[38.4%] aspect-[3/4] z-40 left-[30.8%] top-[22.8%] transition-shadow duration-300 select-none"
                 >
                   {/* Organic float motion */}
                   <motion.div
@@ -721,7 +762,7 @@ export default function HeroSection() {
                   className="absolute inset-0 pointer-events-none z-50"
                 >
                   {/* Petal 1 */}
-                  <motion.div 
+                  <motion.div
                     animate={{ y: [0, -10, 0], rotate: [12, 18, 12] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute left-[15%] top-[15%] w-[18px] h-[30px]"
@@ -732,7 +773,7 @@ export default function HeroSection() {
                   </motion.div>
 
                   {/* Petal 2 */}
-                  <motion.div 
+                  <motion.div
                     animate={{ y: [0, -8, 0], rotate: [-15, -10, -15] }}
                     transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                     className="absolute right-[12%] top-[30%] w-[15px] h-[25px]"
@@ -743,7 +784,7 @@ export default function HeroSection() {
                   </motion.div>
 
                   {/* Petal 3 */}
-                  <motion.div 
+                  <motion.div
                     animate={{ y: [0, -12, 0], rotate: [5, -5, 5] }}
                     transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                     className="absolute left-[22%] bottom-[20%] w-[16px] h-[28px]"
@@ -754,7 +795,7 @@ export default function HeroSection() {
                   </motion.div>
 
                   {/* Petal 4 */}
-                  <motion.div 
+                  <motion.div
                     animate={{ y: [0, -9, 0], rotate: [-30, -24, -30] }}
                     transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
                     className="absolute right-[20%] bottom-[28%] w-[14px] h-[24px]"
@@ -775,16 +816,30 @@ export default function HeroSection() {
 
         {/* Scroll indicator fades as scroll begins */}
         <motion.div
-          style={{ opacity: useTransform(scrollYProgress, [0, 0.15], [1, 0]) }}
-          className="absolute bottom-8 left-6 md:left-12 flex items-center space-x-3 text-[10px] tracking-[0.3em] uppercase text-charcoal/50 font-sans select-none pointer-events-none z-40"
+          style={{ opacity: fadeOutScroll }}
+          className="absolute bottom-8 left-6 md:left-12 flex items-center space-x-4 text-[10px] tracking-[0.3em] uppercase text-charcoal/50 font-sans select-none pointer-events-none z-40"
         >
-          <span>Scroll to Explore</span>
-          <motion.span
-            animate={{ y: [0, 4, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            ↓
-          </motion.span>
+          {/* Artist Stamp */}
+          <div className="flex-shrink-0">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-95">
+              {/* Outer rough circle */}
+              <path d="M12 2.2C15.1 2.1 18.2 3.2 20.3 5.4C22.4 7.6 23.1 11.0 22.4 14.3C21.7 17.6 19.5 20.5 16.5 22.0C13.5 23.5 9.8 23.2 6.8 21.4C3.8 19.6 2.0 16.2 1.8 12.5C1.6 8.8 3.0 5.2 5.7 3.0C7.5 1.6 9.7 2.0 12 2.2ZM12.3 3.8C10.4 3.7 8.5 4.2 7.0 5.3C4.9 6.9 3.7 9.6 3.9 12.5C4.1 15.4 5.7 18.1 8.1 19.5C10.5 20.9 13.5 21.0 15.9 19.8C18.3 18.6 19.9 16.1 20.4 13.4C20.9 10.7 20.3 7.9 18.5 6.0C16.9 4.3 14.6 4.0 12.3 3.8Z" fill="#8F1D32" />
+              {/* Paint splatters/dots */}
+              <circle cx="21" cy="6" r="0.7" fill="#8F1D32" />
+              <circle cx="4" cy="18" r="0.5" fill="#8F1D32" />
+              {/* Imperfect 'N' monogram */}
+              <path d="M9 16V8H10.5L14.3 13.8V8H15.5V16H14L10.2 10.2V16H9Z" fill="#8F1D32" />
+            </svg>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span>Scroll to Explore</span>
+            <motion.span
+              animate={{ y: [0, 4, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              ↓
+            </motion.span>
+          </div>
         </motion.div>
 
       </div>

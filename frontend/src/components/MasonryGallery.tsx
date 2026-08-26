@@ -106,7 +106,7 @@ export default function MasonryGallery() {
   return (
     <section id="gallery" className="py-24 md:py-36 bg-[#F7F2EC] relative border-t border-wine/5">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        
+
         {/* Section Header */}
         <div className="mb-20 space-y-4">
           <div className="flex items-baseline space-x-2">
@@ -120,54 +120,176 @@ export default function MasonryGallery() {
             Selected Artworks
           </h2>
         </div>
+        {/* Styles for Infinite Scrolling columns */}
+        <style>{`
+          @keyframes scrollUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+          }
+          @keyframes scrollDown {
+            0% { transform: translateY(-50%); }
+            100% { transform: translateY(0); }
+          }
+          .scroll-column-up {
+            animation: scrollUp 90s linear infinite;
+          }
+          .scroll-column-down {
+            animation: scrollDown 100s linear infinite;
+          }
+          .scroll-column-up-fast {
+            animation: scrollUp 80s linear infinite;
+          }
+          .scroll-column-up:hover,
+          .scroll-column-down:hover,
+          .scroll-column-up-fast:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
 
-        {/* Masonry Gallery using CSS Columns */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 lg:gap-12 [column-fill:_balance] w-full">
-          {artworks.map((art) => (
-            <motion.div
-              key={art.id}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-8% 0px' }}
-              variants={itemVariants}
-              onClick={() => setSelectedArtwork(art)}
-              className="break-inside-avoid mb-8 lg:mb-12 group cursor-pointer"
-            >
-              {/* Premium Museum-Quality Framing style wrapper */}
-              <div className="relative w-full overflow-hidden bg-[#FAF8F5] border border-charcoal/5 shadow-md group-hover:shadow-2xl transition-all duration-700 ease-out">
-                {/* Large white margin matting effect */}
-                <div className="p-5 md:p-6 lg:p-8">
-                  {/* Image container */}
-                  <div className={`relative ${art.aspect} w-full overflow-hidden bg-[#EADFD0] border border-charcoal/5`}>
-                    <Image
-                      src={art.image}
-                      alt={art.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
-                    />
+        {/* Infinite Scrolling Grid */}
+        <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 h-[80vh] min-h-[600px] max-h-[900px] overflow-hidden w-full px-1">
 
-                    {/* Dark Elegant Hover Overlay */}
-                    <div className="absolute inset-0 bg-charcoal/45 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6 z-10">
-                      
-                      {/* Zoom Indicator */}
-                      <div className="absolute top-4 right-4 bg-[#F7F2EC] text-wine p-2.5 rounded-full shadow-lg transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
-                        <ZoomIn size={16} />
-                      </div>
+          {/* Column 1 - Scroll Up */}
+          <div className="flex flex-col overflow-hidden h-full relative">
+            <div className="flex flex-col gap-8 lg:gap-12 scroll-column-up pb-8 lg:pb-12">
+              {[...artworks, ...artworks].map((art, idx) => (
+                <div
+                  key={`col1-${art.id}-${idx}`}
+                  onClick={() => setSelectedArtwork(art)}
+                  className="w-full group cursor-pointer"
+                >
+                  {/* Premium Museum-Quality Framing style wrapper */}
+                  <div className="relative w-full overflow-hidden bg-[#FAF8F5] border border-charcoal/5 shadow-sm group-hover:shadow-md transition-all duration-700 ease-out">
+                    {/* Large white margin matting effect */}
+                    <div className="p-3 md:p-4 lg:p-5">
+                      {/* Image container */}
+                      <div className={`relative ${art.aspect} w-full overflow-hidden bg-[#EADFD0] border border-charcoal/5`}>
+                        <Image
+                          src={art.image}
+                          alt={art.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                        />
 
-                      {/* Info Text reveal */}
-                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out text-[#F7F2EC]">
-                        <p className="font-serif text-xl font-light">{art.title}</p>
-                        <p className="text-[10px] uppercase tracking-widest text-[#F7F2EC]/60 mt-1 font-sans">
-                          {art.year} &bull; {art.medium}
-                        </p>
+                        {/* Dark Elegant Hover Overlay */}
+                        <div className="absolute inset-0 bg-charcoal/45 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6 z-10">
+                          {/* Zoom Indicator */}
+                          <div className="absolute top-4 right-4 bg-[#F7F2EC] text-wine p-2.5 rounded-full shadow-lg transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
+                            <ZoomIn size={16} />
+                          </div>
+
+                          {/* Info Text reveal */}
+                          <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out text-[#F7F2EC]">
+                            <p className="font-serif text-xl font-light">{art.title}</p>
+                            <p className="text-[10px] uppercase tracking-widest text-[#F7F2EC]/60 mt-1 font-sans">
+                              {art.year} &bull; {art.medium}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              ))}
+            </div>
+          </div>
+
+          {/* Column 2 - Scroll Down */}
+          <div className="hidden md:flex flex-col overflow-hidden h-full relative">
+            <div className="flex flex-col gap-8 lg:gap-12 scroll-column-down pb-8 lg:pb-12">
+              {[...[...artworks].reverse(), ...[...artworks].reverse()].map((art, idx) => (
+                <div
+                  key={`col2-${art.id}-${idx}`}
+                  onClick={() => setSelectedArtwork(art)}
+                  className="w-full group cursor-pointer"
+                >
+                  {/* Premium Museum-Quality Framing style wrapper */}
+                  <div className="relative w-full overflow-hidden bg-[#FAF8F5] border border-charcoal/5 shadow-sm group-hover:shadow-md transition-all duration-700 ease-out">
+                    {/* Large white margin matting effect */}
+                    <div className="p-3 md:p-4 lg:p-5">
+                      {/* Image container */}
+                      <div className={`relative ${art.aspect} w-full overflow-hidden bg-[#EADFD0] border border-charcoal/5`}>
+                        <Image
+                          src={art.image}
+                          alt={art.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                        />
+
+                        {/* Dark Elegant Hover Overlay */}
+                        <div className="absolute inset-0 bg-charcoal/45 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6 z-10">
+                          {/* Zoom Indicator */}
+                          <div className="absolute top-4 right-4 bg-[#F7F2EC] text-wine p-2.5 rounded-full shadow-lg transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
+                            <ZoomIn size={16} />
+                          </div>
+
+                          {/* Info Text reveal */}
+                          <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out text-[#F7F2EC]">
+                            <p className="font-serif text-xl font-light">{art.title}</p>
+                            <p className="text-[10px] uppercase tracking-widest text-[#F7F2EC]/60 mt-1 font-sans">
+                              {art.year} &bull; {art.medium}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Column 3 - Scroll Up Fast */}
+          <div className="hidden lg:flex flex-col overflow-hidden h-full relative">
+            <div className="flex flex-col gap-8 lg:gap-12 scroll-column-up-fast pb-8 lg:pb-12">
+              {[...[...artworks].slice(3).concat([...artworks].slice(0, 3)), ...[...artworks].slice(3).concat([...artworks].slice(0, 3))].map((art, idx) => (
+                <div
+                  key={`col3-${art.id}-${idx}`}
+                  onClick={() => setSelectedArtwork(art)}
+                  className="w-full group cursor-pointer"
+                >
+                  {/* Premium Museum-Quality Framing style wrapper */}
+                  <div className="relative w-full overflow-hidden bg-[#FAF8F5] border border-charcoal/5 shadow-sm group-hover:shadow-md transition-all duration-700 ease-out">
+                    {/* Large white margin matting effect */}
+                    <div className="p-3 md:p-4 lg:p-5">
+                      {/* Image container */}
+                      <div className={`relative ${art.aspect} w-full overflow-hidden bg-[#EADFD0] border border-charcoal/5`}>
+                        <Image
+                          src={art.image}
+                          alt={art.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                        />
+
+                        {/* Dark Elegant Hover Overlay */}
+                        <div className="absolute inset-0 bg-charcoal/45 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-6 z-10">
+                          {/* Zoom Indicator */}
+                          <div className="absolute top-4 right-4 bg-[#F7F2EC] text-wine p-2.5 rounded-full shadow-lg transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
+                            <ZoomIn size={16} />
+                          </div>
+
+                          {/* Info Text reveal */}
+                          <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out text-[#F7F2EC]">
+                            <p className="font-serif text-xl font-light">{art.title}</p>
+                            <p className="text-[10px] uppercase tracking-widest text-[#F7F2EC]/60 mt-1 font-sans">
+                              {art.year} &bull; {art.medium}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Elegant Top & Bottom Fade Overlays */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-[#F7F2EC] via-[#F7F2EC]/80 to-transparent z-20" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#F7F2EC] via-[#F7F2EC]/80 to-transparent z-20" />
         </div>
 
       </div>
@@ -182,8 +304,8 @@ export default function MasonryGallery() {
             className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/80 backdrop-blur-md p-4 sm:p-8 overflow-y-auto"
           >
             {/* Close Area */}
-            <div 
-              className="absolute inset-0 cursor-zoom-out" 
+            <div
+              className="absolute inset-0 cursor-zoom-out"
               onClick={() => setSelectedArtwork(null)}
             />
 
@@ -228,24 +350,32 @@ export default function MasonryGallery() {
                     </h2>
                   </div>
 
-                  <div className="space-y-3 font-sans text-sm">
-                    <div className="flex justify-between border-b border-wine/10 pb-2">
-                      <span className="text-charcoal/40 uppercase tracking-widest text-[10px]">Year</span>
-                      <span className="text-charcoal font-medium">{selectedArtwork.year}</span>
+                  {/* Artwork Detail Listing */}
+                  <div className="font-sans text-sm text-charcoal/90 space-y-2.5 pb-4 border-b border-wine/10">
+                    <div>
+                      <span className="font-medium text-charcoal/50">Name : </span>
+                      <span className="text-charcoal font-semibold">{selectedArtwork.title}</span>
                     </div>
-                    <div className="flex justify-between border-b border-wine/10 pb-2">
-                      <span className="text-charcoal/40 uppercase tracking-widest text-[10px]">Medium</span>
+                    <div>
+                      <span className="font-medium text-charcoal/50">Size : </span>
+                      <span className="text-charcoal">{selectedArtwork.dimensions}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium text-charcoal/50">Medium : </span>
                       <span className="text-charcoal">{selectedArtwork.medium}</span>
                     </div>
-                    <div className="flex justify-between border-b border-wine/10 pb-2">
-                      <span className="text-charcoal/40 uppercase tracking-widest text-[10px]">Dimensions</span>
-                      <span className="text-charcoal">{selectedArtwork.dimensions}</span>
+                    <div>
+                      <span className="font-medium text-charcoal/50">Type : </span>
+                      <span className="text-charcoal">Original Painting</span>
                     </div>
                   </div>
 
-                  <p className="text-charcoal/70 font-sans text-sm leading-relaxed font-light">
-                    {selectedArtwork.description}
-                  </p>
+                  <div className="space-y-2 pt-2">
+                    <span className="text-[10px] uppercase tracking-widest text-wine/60 font-bold font-sans">About the artwork</span>
+                    <p className="text-charcoal/70 font-sans text-sm leading-relaxed font-light">
+                      {selectedArtwork.description}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="pt-6">
