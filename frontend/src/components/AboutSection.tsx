@@ -23,12 +23,12 @@ export default function AboutSection() {
   };
 
   return (
-    <section id="about" className="py-24 md:py-36 bg-[#F7F2EB] border-t border-wine/5 relative overflow-hidden">
+    <section id="about" className="py-16 sm:py-20 md:py-24 lg:py-36 bg-[#F7F2EB] border-t border-wine/5 relative overflow-hidden">
       {/* Subtle background circles for depth */}
       <div className="absolute top-[20%] left-[-10%] w-[35vw] h-[35vw] rounded-full bg-brown/5 blur-3xl pointer-events-none" />
       <div className="absolute bottom-[10%] right-[-5%] w-[25vw] h-[25vw] rounded-full bg-wine/5 blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
           
           {/* Left Column: Image Collage & Index */}
@@ -64,11 +64,6 @@ export default function AboutSection() {
               </motion.div>
             </div>
 
-            {/* Caption / Artwork Note */}
-            <p className="mt-4 text-xs text-charcoal/50 italic font-sans flex justify-between">
-              <span>Studio portrait, 2026.</span>
-              <span>Photographed by A. K.</span>
-            </p>
           </motion.div>
 
           {/* Right Column: Biography & Philosophy */}
@@ -85,7 +80,7 @@ export default function AboutSection() {
               <span className="text-xs uppercase tracking-[0.3em] text-wine font-medium font-sans">
                 Philosophy
               </span>
-              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-charcoal leading-tight">
+              <h2 className="font-serif text-[clamp(1.75rem,5vw,3.75rem)] font-light text-charcoal leading-tight">
                 Translating the world&apos;s noise into moments of absolute poise.
               </h2>
             </motion.div>

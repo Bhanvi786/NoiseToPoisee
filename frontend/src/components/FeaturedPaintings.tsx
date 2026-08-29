@@ -41,11 +41,11 @@ export default function FeaturedPaintings() {
   };
 
   return (
-    <section className="py-24 md:py-36 bg-[#F7F2EB] border-t border-wine/5 relative overflow-hidden">
+    <section className="py-16 sm:py-20 md:py-24 lg:py-36 bg-[#F7F2EB] border-t border-wine/5 relative overflow-hidden">
       {/* Decorative vertical lines */}
       <div className="absolute right-12 top-0 bottom-0 w-[1px] bg-wine/5 hidden md:block" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
         {/* Section Title */}
         <div className="mb-20 flex items-baseline space-x-2">
           <span className="font-serif text-3xl text-wine font-light">05</span>
@@ -56,7 +56,7 @@ export default function FeaturedPaintings() {
         </div>
 
         {/* Masterpieces Grid */}
-        <div className="space-y-32 md:space-y-48">
+        <div className="space-y-16 sm:space-y-24 md:space-y-32 lg:space-y-48">
           {featured.map((item, index) => {
             const isEven = index % 2 === 0;
             return (
@@ -109,7 +109,7 @@ export default function FeaturedPaintings() {
 
                   <motion.h3 
                     variants={fadeUp}
-                    className="font-serif text-4xl sm:text-5xl font-light text-charcoal tracking-tight"
+                    className="font-serif text-[clamp(1.5rem,4vw,3rem)] font-light text-charcoal tracking-tight"
                   >
                     {item.title}
                   </motion.h3>

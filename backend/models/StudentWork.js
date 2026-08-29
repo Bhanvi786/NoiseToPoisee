@@ -1,11 +1,15 @@
 const mongoose = require('mongoose');
 
-const ArtworkSchema = new mongoose.Schema({
+const StudentWorkSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
   },
-  year: {
+  artist: {
+    type: String,
+    required: false,
+  },
+  mentorshipYear: {
     type: String,
     required: true,
   },
@@ -15,23 +19,15 @@ const ArtworkSchema = new mongoose.Schema({
   },
   dimensions: {
     type: String,
-    required: true,
+    required: false,
   },
   image: {
     type: String,
     required: true,
   },
-  aspect: {
-    type: String,
-    default: 'aspect-square',
-  },
-  description: {
+  concept: {
     type: String,
     required: true,
-  },
-  isSold: {
-    type: Boolean,
-    default: false,
   },
   createdAt: {
     type: Date,
@@ -39,4 +35,4 @@ const ArtworkSchema = new mongoose.Schema({
   }
 });
 
-module.exports = mongoose.model('Artwork', ArtworkSchema);
+module.exports = mongoose.model('StudentWork', StudentWorkSchema);

@@ -58,24 +58,27 @@ export default function Navbar() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b border-wine/5 ${
-          scrolled
-            ? 'bg-[#F7F2EC]/95 backdrop-blur-md py-4 shadow-sm'
-            : 'bg-transparent py-6'
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 border-b border-wine/5 ${scrolled
+          ? 'bg-[#F7F2EC]/95 backdrop-blur-md py-2 sm:py-3 md:py-4 shadow-sm'
+          : 'bg-transparent py-3 sm:py-4 md:py-6'
+          }`}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between">
           {/* Logo */}
           <a
             href="#home"
             onClick={(e) => handleNavClick(e, '#home')}
-            className="font-serif text-2xl font-light tracking-wide text-charcoal hover:text-wine transition-colors duration-300"
+            className="flex items-center hover:opacity-90 transition-opacity duration-300"
           >
-            noise<span className="text-wine font-medium">To</span>poise
+            <img
+              src="/Logo.png"
+              alt="noiseToPoise Logo"
+              className="h-[clamp(2.5rem,5vw,4rem)] w-[clamp(2.5rem,5vw,4rem)] object-contain rounded-full border border-charcoal/20 shadow-sm"
+            />
           </a>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-10">
+          <nav className="hidden md:flex items-center space-x-6 lg:space-x-10">
             {navItems.map((item) => {
               const isActive = activeSection === item.href.replace('#', '');
               return (
@@ -83,7 +86,7 @@ export default function Navbar() {
                   key={item.name}
                   href={item.href}
                   onClick={(e) => handleNavClick(e, item.href)}
-                  className="relative text-sm tracking-[0.15em] uppercase text-charcoal/80 hover:text-charcoal transition-colors duration-300 font-sans"
+                  className="relative text-[11px] lg:text-sm tracking-[0.1em] lg:tracking-[0.15em] uppercase text-charcoal/80 hover:text-charcoal transition-colors duration-300 font-sans"
                 >
                   {item.name}
                   {isActive && (
@@ -110,14 +113,12 @@ export default function Navbar() {
               </span>
               <div className="relative w-6 h-6 flex flex-col justify-center items-center">
                 <span
-                  className={`block w-5 h-[1.5px] bg-charcoal transition-all duration-300 ease-out ${
-                    isOpen ? 'rotate-45 translate-y-[1.5px]' : '-translate-y-1'
-                  }`}
+                  className={`block w-5 h-[1.5px] bg-charcoal transition-all duration-300 ease-out ${isOpen ? 'rotate-45 translate-y-[1.5px]' : '-translate-y-1'
+                    }`}
                 />
                 <span
-                  className={`block w-5 h-[1.5px] bg-charcoal transition-all duration-300 ease-out ${
-                    isOpen ? '-rotate-45 -translate-y-[1px]' : 'translate-y-1'
-                  }`}
+                  className={`block w-5 h-[1.5px] bg-charcoal transition-all duration-300 ease-out ${isOpen ? '-rotate-45 -translate-y-[1px]' : 'translate-y-1'
+                    }`}
                 />
               </div>
             </button>
@@ -154,7 +155,7 @@ export default function Navbar() {
                       <a
                         href={item.href}
                         onClick={(e) => handleNavClick(e, item.href)}
-                        className="font-serif text-5xl sm:text-6xl font-light text-charcoal hover:text-wine hover:pl-4 transition-all duration-500 block relative"
+                        className="font-serif text-4xl sm:text-5xl md:text-6xl font-light text-charcoal hover:text-wine hover:pl-4 transition-all duration-500 block relative"
                       >
                         {item.name}
                       </a>
@@ -189,8 +190,8 @@ export default function Navbar() {
             <div className="absolute bottom-10 left-8 sm:left-16 right-8 sm:right-16 flex justify-between items-center text-xs tracking-widest text-charcoal/40 uppercase">
               <div>© 2026 noiseToPoise</div>
               <div className="flex space-x-6">
-                <a href="#behance" className="hover:text-wine transition-colors">Behance</a>
                 <a href="#instagram" className="hover:text-wine transition-colors">Instagram</a>
+                <a href="#facebook" className="hover:text-wine transition-colors">Facebook</a>
               </div>
             </div>
           </motion.div>

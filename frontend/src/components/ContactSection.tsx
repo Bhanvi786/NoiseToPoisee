@@ -24,11 +24,11 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-24 md:py-36 bg-[#FDFBF7] border-t border-wine/5 relative overflow-hidden">
+    <section id="contact" className="py-16 sm:py-20 md:py-24 lg:py-36 bg-[#FDFBF7] border-t border-wine/5 relative overflow-hidden">
       <div className="absolute right-0 top-0 w-[30vw] h-[30vw] rounded-full bg-wine/5 blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-20 items-start">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 sm:gap-12 lg:gap-16 xl:gap-20 items-start">
           
           {/* Left Column: Details */}
           <motion.div 
@@ -43,13 +43,13 @@ export default function ContactSection() {
             {/* Header */}
             <div className="space-y-4">
               <div className="flex items-baseline space-x-2">
-                <span className="font-serif text-3xl text-wine font-light">07</span>
+                <span className="font-serif text-3xl text-wine font-light">06</span>
                 <span className="h-[1px] w-12 bg-wine/20" />
                 <span className="text-xs uppercase tracking-[0.25em] text-charcoal/40 font-sans">
                   The Dialogue
                 </span>
               </div>
-              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-light text-charcoal tracking-tight">
+              <h2 className="font-serif text-[clamp(1.75rem,5vw,3.75rem)] font-light text-charcoal tracking-tight">
                 Acquisitions &amp; Inquiries
               </h2>
             </div>
@@ -70,16 +70,7 @@ export default function ContactSection() {
               <motion.div variants={fadeUp} className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-wine font-medium">Studio Location</span>
                 <p className="text-sm text-charcoal/80 font-light leading-relaxed">
-                  Studio 104, Old Mill Residency,<br />
-                  Colaba, Mumbai, India
-                </p>
-              </motion.div>
-
-              <motion.div variants={fadeUp} className="space-y-1">
-                <span className="text-[10px] uppercase tracking-widest text-wine font-medium">Gallery Representation</span>
-                <p className="text-sm text-charcoal/80 font-light leading-relaxed">
-                  Represented in London by <span className="font-medium text-charcoal">The Fine Art Alliance</span>.<br />
-                  Represented in Mumbai by <span className="font-medium text-charcoal">Aura Gallery India</span>.
+                  Gurugram, India
                 </p>
               </motion.div>
             </div>

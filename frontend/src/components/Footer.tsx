@@ -13,11 +13,11 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-[#1A1A1A] text-[#F7F2EB] py-16 md:py-24 border-t border-white/5 relative overflow-hidden">
+    <footer className="bg-[#1A1A1A] text-[#F7F2EB] py-12 sm:py-16 md:py-24 border-t border-white/5 relative overflow-hidden">
       {/* Subtle organic background accent */}
       <div className="absolute right-[-10%] bottom-[-10%] w-[30vw] h-[30vw] rounded-full bg-wine/10 blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-12 items-start relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-8 sm:gap-10 md:gap-12 items-start relative z-10">
         
         {/* Left Column: Brand & Quote */}
         <div className="md:col-span-5 space-y-6">
@@ -58,9 +58,7 @@ export default function Footer() {
             </h4>
             <div className="flex space-x-6 font-sans text-sm font-light text-white/60">
               <a href="#instagram" className="hover:text-white transition-colors">Instagram</a>
-              <a href="#behance" className="hover:text-white transition-colors">Behance</a>
-              <a href="#pinterest" className="hover:text-white transition-colors">Pinterest</a>
-              <a href="#vimeo" className="hover:text-white transition-colors">Vimeo</a>
+              <a href="#facebook" className="hover:text-white transition-colors">Facebook</a>
             </div>
           </div>
 
@@ -78,7 +76,7 @@ export default function Footer() {
       </div>
 
       {/* Under Footer */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs tracking-widest text-white/30 uppercase font-sans">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 mt-10 sm:mt-12 md:mt-16 pt-6 sm:pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-[10px] sm:text-xs tracking-widest text-white/30 uppercase font-sans gap-3 sm:gap-0">
         <div className="mb-4 sm:mb-0">
           &copy; 2026 noiseToPoise. All rights reserved.
         </div>

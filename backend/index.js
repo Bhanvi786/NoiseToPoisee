@@ -8,6 +8,7 @@ const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
 
 const Artwork = require('./models/Artwork');
+const StudentWork = require('./models/StudentWork');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -29,6 +30,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/noisetopo
   .then(async () => {
     console.log('Successfully connected to MongoDB');
     await seedArtworksIfEmpty();
+    await seedStudentWorksIfEmpty();
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);
@@ -151,6 +153,39 @@ async function seedArtworksIfEmpty() {
   }
 }
 
+async function seedStudentWorksIfEmpty() {
+  try {
+    const count = await StudentWork.countDocuments();
+    if (count === 0) {
+      console.log('Database empty. Seeding initial student works...');
+      const initialStudentWorks = [
+        {
+          title: 'Serenity at Dawn',
+          artist: 'Eliza Reed',
+          mentorshipYear: 'Mentorship Class of 2025',
+          medium: 'Oil on Canvas',
+          dimensions: '24 × 30 inches',
+          image: '/artwork/student_lake.png',
+          concept: 'A landscape study capturing the soft reflections and light gradients of early morning. Eliza developed this piece focusing on brushwork control and atmospheric perspective.'
+        },
+        {
+          title: 'Gaze of Innocence',
+          artist: 'Aarav Mehta',
+          mentorshipYear: 'Mentorship Class of 2026',
+          medium: 'Charcoal & Soft Pastel on Paper',
+          dimensions: '20 × 20 inches',
+          image: '/artwork/student_portrait.png',
+          concept: 'A high-contrast study of emotion and structure. Aarav combined delicate blending with raw charcoal lines to achieve a powerful portrait filled with depth.'
+        }
+      ];
+      await StudentWork.insertMany(initialStudentWorks);
+      console.log('Successfully seeded database with initial student works.');
+    }
+  } catch (error) {
+    console.error('Error seeding student database:', error);
+  }
+}
+
 // -------------------------------------------------------------
 // API Endpoints
 // -------------------------------------------------------------
@@ -185,7 +220,7 @@ app.post('/api/admin/validate-passcode', (req, res) => {
 // Add new artwork (Upload image + save to MongoDB)
 app.post('/api/artworks', upload.single('image'), async (req, res) => {
   try {
-    const { passcode, title, year, medium, dimensions, aspect, description } = req.body;
+    const { passcode, title, year, medium, dimensions, aspect, description, isSold } = req.body;
     
     // Auth check
     const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
@@ -229,7 +264,8 @@ app.post('/api/artworks', upload.single('image'), async (req, res) => {
       dimensions,
       image: imageUrl,
       aspect: aspect || 'aspect-square',
-      description
+      description,
+      isSold: isSold === 'true' || isSold === true
     });
 
     await newArtwork.save();
@@ -237,6 +273,77 @@ app.post('/api/artworks', upload.single('image'), async (req, res) => {
   } catch (err) {
     console.error('Error adding artwork:', err);
     res.status(500).json({ error: 'Server error saving artwork' });
+  }
+});
+
+// Edit/Update artwork
+app.put('/api/artworks/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { passcode, title, year, medium, dimensions, aspect, description, isSold } = req.body;
+
+    // Auth check
+    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
+    if (passcode !== adminPasscode) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
+    }
+
+    const artwork = await Artwork.findById(id);
+    if (!artwork) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ error: 'Artwork not found' });
+    }
+
+    // Update text fields
+    artwork.title = title || artwork.title;
+    artwork.year = year || artwork.year;
+    artwork.medium = medium || artwork.medium;
+    artwork.dimensions = dimensions || artwork.dimensions;
+    artwork.aspect = aspect || artwork.aspect;
+    artwork.description = description || artwork.description;
+    if (isSold !== undefined) {
+      artwork.isSold = isSold === 'true' || isSold === true;
+    }
+
+    // If new image is uploaded
+    if (req.file) {
+      // Clean up old local image if it existed
+      if (artwork.image.startsWith('/uploads/')) {
+        const oldFileName = artwork.image.split('/').pop();
+        const oldFilePath = path.join(uploadsDir, oldFileName);
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+
+      let imageUrl = '';
+      if (isCloudinaryConfigured) {
+        try {
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: 'noisetopoise_drawings'
+          });
+          imageUrl = result.secure_url;
+          fs.unlinkSync(req.file.path);
+        } catch (cloudErr) {
+          console.error('Cloudinary upload error during update:', cloudErr);
+          imageUrl = `/uploads/${req.file.filename}`;
+        }
+      } else {
+        imageUrl = `/uploads/${req.file.filename}`;
+      }
+      artwork.image = imageUrl;
+    }
+
+    await artwork.save();
+    res.json(artwork);
+  } catch (err) {
+    console.error('Error updating artwork:', err);
+    res.status(500).json({ error: 'Server error updating artwork' });
   }
 });
 
@@ -272,6 +379,174 @@ app.delete('/api/artworks/:id', async (req, res) => {
     res.status(500).json({ error: 'Server error deleting artwork' });
   }
 });
+
+// -------------------------------------------------------------
+// Student Work Endpoints
+// -------------------------------------------------------------
+
+// Fetch all student works
+app.get('/api/student-works', async (req, res) => {
+  try {
+    const works = await StudentWork.find().sort({ createdAt: -1 });
+    res.json(works);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error fetching student works' });
+  }
+});
+
+// Add new student work
+app.post('/api/student-works', upload.single('image'), async (req, res) => {
+  try {
+    const { passcode, title, artist, mentorshipYear, medium, dimensions, concept } = req.body;
+    
+    // Auth check
+    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
+    if (passcode !== adminPasscode) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Image file is required' });
+    }
+
+    let imageUrl = '';
+
+    if (isCloudinaryConfigured) {
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'noisetopoise_drawings'
+        });
+        imageUrl = result.secure_url;
+        fs.unlinkSync(req.file.path);
+      } catch (cloudErr) {
+        console.error('Cloudinary upload error:', cloudErr);
+        imageUrl = `/uploads/${req.file.filename}`;
+      }
+    } else {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+
+    const newWork = new StudentWork({
+      title,
+      artist,
+      mentorshipYear,
+      medium,
+      dimensions,
+      image: imageUrl,
+      concept
+    });
+
+    await newWork.save();
+    res.status(201).json(newWork);
+  } catch (err) {
+    console.error('Error adding student work:', err);
+    res.status(500).json({ error: 'Server error saving student work' });
+  }
+});
+
+// Edit/Update student work
+app.put('/api/student-works/:id', upload.single('image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { passcode, title, artist, mentorshipYear, medium, dimensions, concept } = req.body;
+
+    // Auth check
+    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
+    if (passcode !== adminPasscode) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
+    }
+
+    const work = await StudentWork.findById(id);
+    if (!work) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ error: 'Student work not found' });
+    }
+
+    // Update text fields
+    work.title = title || work.title;
+    work.artist = artist || work.artist;
+    work.mentorshipYear = mentorshipYear || work.mentorshipYear;
+    work.medium = medium || work.medium;
+    work.dimensions = dimensions || work.dimensions;
+    work.concept = concept || work.concept;
+
+    // If new image is uploaded
+    if (req.file) {
+      if (work.image.startsWith('/uploads/')) {
+        const oldFileName = work.image.split('/').pop();
+        const oldFilePath = path.join(uploadsDir, oldFileName);
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+
+      let imageUrl = '';
+      if (isCloudinaryConfigured) {
+        try {
+          const result = await cloudinary.uploader.upload(req.file.path, {
+            folder: 'noisetopoise_drawings'
+          });
+          imageUrl = result.secure_url;
+          fs.unlinkSync(req.file.path);
+        } catch (cloudErr) {
+          console.error('Cloudinary upload error during update:', cloudErr);
+          imageUrl = `/uploads/${req.file.filename}`;
+        }
+      } else {
+        imageUrl = `/uploads/${req.file.filename}`;
+      }
+      work.image = imageUrl;
+    }
+
+    await work.save();
+    res.json(work);
+  } catch (err) {
+    console.error('Error updating student work:', err);
+    res.status(500).json({ error: 'Server error updating student work' });
+  }
+});
+
+// Delete student work
+app.delete('/api/student-works/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { passcode } = req.body;
+
+    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
+    if (passcode !== adminPasscode) {
+      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
+    }
+
+    const work = await StudentWork.findById(id);
+    if (!work) {
+      return res.status(404).json({ error: 'Student work not found' });
+    }
+
+    if (work.image.startsWith('/uploads/')) {
+      const fileName = work.image.split('/').pop();
+      const filePath = path.join(uploadsDir, fileName);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    await StudentWork.findByIdAndDelete(id);
+    res.json({ message: 'Student work deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting student work:', err);
+    res.status(500).json({ error: 'Server error deleting student work' });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Backend server is running on http://localhost:${PORT}`);

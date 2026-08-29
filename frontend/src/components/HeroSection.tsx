@@ -63,7 +63,7 @@ const artworks = [
   },
   {
     title: "Celestial Balance",
-    image: "/artwork/3.jpeg",
+    image: "/artwork/9.jpeg",
     year: "2025",
     medium: "OIL ON CANVAS",
     size: "30 × 30"
@@ -312,7 +312,7 @@ export default function HeroSection() {
     <section
       ref={containerRef}
       id="home"
-      className="relative h-[250vh] w-full"
+      className="relative h-[150vh] sm:h-[200vh] md:h-[250vh] w-full"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -328,32 +328,11 @@ export default function HeroSection() {
         {/* Fine grain overlay for paper/plaster texture depth */}
         <div className="absolute inset-0 bg-transparent grain-overlay opacity-[0.06] z-0 pointer-events-none" />
 
-        {/* Corner Paint Stroke Overlay Accents (Maroon & Warm tones) */}
-        <motion.div style={{ opacity: fadeOutScroll }} className="absolute inset-0 pointer-events-none z-20">
-          {/* Top-Left Corner Paint Stroke */}
-          <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute top-0 left-0 w-36 sm:w-56 md:w-72 h-auto opacity-70">
-            <path d="M0 0 C 40 10, 80 5, 110 30 C 140 55, 120 120, 160 160 C 140 150, 100 130, 80 90 C 60 50, 20 40, 0 40 Z" fill="#5A121F" opacity="0.65" />
-            <path d="M0 0 C 30 20, 60 30, 80 60 C 100 90, 95 130, 120 150 C 100 135, 75 110, 60 80 C 45 50, 15 30, 0 25 Z" fill="#8F1D32" opacity="0.8" />
-            <path d="M0 0 C 20 15, 45 25, 55 45 C 65 65, 70 95, 90 110 C 80 100, 60 80, 50 60 C 40 40, 10 20, 0 15 Z" fill="#A64B2A" opacity="0.75" />
-            <path d="M5 0 C 15 10, 30 15, 38 30 C 46 45, 50 70, 65 80 C 58 75, 45 60, 38 45 C 30 30, 10 15, 5 10 Z" fill="#D49B41" opacity="0.5" />
-            <circle cx="95" cy="40" r="1.5" fill="#8F1D32" opacity="0.6" />
-            <circle cx="130" cy="85" r="1" fill="#A64B2A" opacity="0.5" />
-            <circle cx="50" cy="115" r="2" fill="#5A121F" opacity="0.7" />
-          </svg>
 
-          {/* Bottom-Left Corner Paint Stroke */}
-          <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute bottom-0 left-0 w-36 sm:w-56 md:w-72 h-auto opacity-70">
-            <path d="M0 200 C 40 190, 80 195, 110 170 C 140 145, 120 80, 160 40 C 140 50, 100 70, 80 110 C 60 150, 20 160, 0 160 Z" fill="#8F1D32" opacity="0.75" />
-            <path d="M0 200 C 30 180, 60 170, 80 140 C 100 110, 95 70, 120 50 C 100 65, 75 90, 60 120 C 45 150, 15 170, 0 175 Z" fill="#5A121F" opacity="0.7" />
-            <path d="M0 200 C 20 185, 45 175, 55 155 C 65 135, 70 105, 90 90 C 80 100, 60 120, 50 140 C 40 160, 10 180, 0 185 Z" fill="#A64B2A" opacity="0.8" />
-            <circle cx="95" cy="160" r="1.5" fill="#8F1D32" opacity="0.6" />
-            <circle cx="130" cy="115" r="1" fill="#D49B41" opacity="0.5" />
-          </svg>
-        </motion.div>
 
         {/* TOP-LEFT: Near the noiseToPoise logo, add a very small hand-painted abstract brushstroke/artist mark */}
         <div className="absolute top-6 sm:top-8 left-0 right-0 z-40 pointer-events-none">
-          <div className="max-w-7xl mx-auto px-6 md:px-12 w-full relative">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 w-full relative">
             <motion.div
               style={{ opacity: fadeOutScroll }}
               className="absolute left-[175px] sm:left-[190px] top-[4px]"
@@ -367,35 +346,21 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* Decorative vertical indicators */}
-        <div className="absolute left-6 md:left-12 top-1/2 -translate-y-1/2 hidden lg:flex flex-col items-center space-y-6 z-10 pointer-events-none">
-          <span className="text-[9px] tracking-[0.35em] uppercase text-charcoal/30 rotate-90 origin-left translate-x-[3px] font-sans">
-            noiseToPoise
-          </span>
-          <div className="w-[1px] h-32 bg-wine/10 relative">
-            <motion.div
-              className="absolute top-0 left-0 w-full bg-wine/50"
-              animate={{ height: ['0%', '100%'] }}
-              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </div>
-          <span className="font-serif text-xs text-wine/60">01</span>
-        </div>
 
-        <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-8 items-center z-10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center z-10 relative">
 
           {/* LEFT COLUMN: Stable Editorial Typography */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="lg:col-span-5 flex flex-col space-y-8 md:space-y-10 lg:pr-8"
+            className="lg:col-span-5 flex flex-col space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10 lg:pr-8"
           >
             {/* Small Uppercase Quote */}
             <div className="overflow-hidden">
               <motion.p
                 variants={fadeRevealVariants}
-                className="text-[10px] sm:text-xs uppercase tracking-[0.25em] text-charcoal/50 leading-relaxed font-sans max-w-sm"
+                className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-[0.15em] sm:tracking-[0.25em] text-charcoal/50 leading-relaxed font-sans max-w-sm"
               >
                 &ldquo;Art is not what you see, but what you make others see.&rdquo;
               </motion.p>
@@ -405,13 +370,13 @@ export default function HeroSection() {
             <div className="space-y-1">
               <motion.h1
                 variants={fadeRevealVariants}
-                className="font-serif text-6xl sm:text-7.5xl lg:text-8xl xl:text-[7.5rem] font-light tracking-tight text-charcoal leading-[0.95]"
+                className="font-serif text-[clamp(2.5rem,10vw,7.5rem)] font-light tracking-tight text-charcoal leading-[0.95]"
               >
                 DEEPTI
               </motion.h1>
               <motion.h1
                 variants={fadeRevealVariants}
-                className="font-serif text-6xl sm:text-7.5xl lg:text-8xl xl:text-[7.5rem] font-light tracking-tight text-charcoal leading-[0.95]"
+                className="font-serif text-[clamp(2.5rem,10vw,7.5rem)] font-light tracking-tight text-charcoal leading-[0.95]"
               >
                 AROURA
               </motion.h1>
@@ -463,7 +428,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* RIGHT COLUMN: The Living Gallery Parallax Stack */}
-          <div className="lg:col-span-7 flex justify-center items-center w-full relative h-[85vh] select-none">
+          <div className="lg:col-span-7 flex justify-center items-center w-full relative h-[50vh] sm:h-[65vh] md:h-[75vh] lg:h-[85vh] select-none overflow-hidden lg:overflow-visible">
 
             {/* 1. Soft Terracotta Halo */}
             <motion.div
@@ -471,7 +436,7 @@ export default function HeroSection() {
               initial="hidden"
               animate="visible"
               style={{ y: yHaloVal }}
-              className="absolute w-[440px] h-[440px] sm:w-[580px] sm:h-[580px] rounded-full bg-wine/8 blur-[100px] pointer-events-none z-0 left-[35%] top-[25%]"
+              className="absolute w-[60vw] h-[60vw] sm:w-[440px] sm:h-[440px] md:w-[580px] md:h-[580px] rounded-full bg-wine/8 blur-[100px] pointer-events-none z-0 left-[35%] top-[25%]"
             />
 
             {/* 2. Huge Background Typography */}
@@ -480,13 +445,13 @@ export default function HeroSection() {
               initial="hidden"
               animate="visible"
               style={{ y: yTypographyVal }}
-              className="absolute font-serif text-[7.5rem] sm:text-[11rem] lg:text-[14rem] font-bold text-wine/8 select-none pointer-events-none tracking-widest text-center z-0 left-[20%] top-[30%]"
+              className="absolute font-serif text-[clamp(3rem,15vw,14rem)] font-bold text-wine/8 select-none pointer-events-none tracking-widest text-center z-0 left-[20%] top-[30%]"
             >
               GANESHA
             </motion.div>
 
             {/* Main stack container spanning large viewport coordinates */}
-            <div className="relative w-full h-full flex justify-center items-center translate-x-[120px] translate-y-8">
+            <div className="relative w-full h-full flex justify-center items-center translate-x-0 sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 scale-[0.75] sm:scale-[0.85] md:scale-[0.92] lg:scale-100 origin-center">
 
               {/* STACK LAYERS */}
               <div className="absolute inset-0 w-full h-full">
@@ -817,20 +782,8 @@ export default function HeroSection() {
         {/* Scroll indicator fades as scroll begins */}
         <motion.div
           style={{ opacity: fadeOutScroll }}
-          className="absolute bottom-8 left-6 md:left-12 flex items-center space-x-4 text-[10px] tracking-[0.3em] uppercase text-charcoal/50 font-sans select-none pointer-events-none z-40"
+          className="absolute bottom-4 sm:bottom-6 md:bottom-8 left-4 sm:left-6 md:left-12 flex items-center space-x-4 text-[9px] sm:text-[10px] tracking-[0.2em] sm:tracking-[0.3em] uppercase text-charcoal/50 font-sans select-none pointer-events-none z-40"
         >
-          {/* Artist Stamp */}
-          <div className="flex-shrink-0">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-95">
-              {/* Outer rough circle */}
-              <path d="M12 2.2C15.1 2.1 18.2 3.2 20.3 5.4C22.4 7.6 23.1 11.0 22.4 14.3C21.7 17.6 19.5 20.5 16.5 22.0C13.5 23.5 9.8 23.2 6.8 21.4C3.8 19.6 2.0 16.2 1.8 12.5C1.6 8.8 3.0 5.2 5.7 3.0C7.5 1.6 9.7 2.0 12 2.2ZM12.3 3.8C10.4 3.7 8.5 4.2 7.0 5.3C4.9 6.9 3.7 9.6 3.9 12.5C4.1 15.4 5.7 18.1 8.1 19.5C10.5 20.9 13.5 21.0 15.9 19.8C18.3 18.6 19.9 16.1 20.4 13.4C20.9 10.7 20.3 7.9 18.5 6.0C16.9 4.3 14.6 4.0 12.3 3.8Z" fill="#8F1D32" />
-              {/* Paint splatters/dots */}
-              <circle cx="21" cy="6" r="0.7" fill="#8F1D32" />
-              <circle cx="4" cy="18" r="0.5" fill="#8F1D32" />
-              {/* Imperfect 'N' monogram */}
-              <path d="M9 16V8H10.5L14.3 13.8V8H15.5V16H14L10.2 10.2V16H9Z" fill="#8F1D32" />
-            </svg>
-          </div>
           <div className="flex items-center space-x-2">
             <span>Scroll to Explore</span>
             <motion.span
