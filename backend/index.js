@@ -6,6 +6,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const cloudinary = require('cloudinary').v2;
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
 
 const Artwork = require('./models/Artwork');
 const StudentWork = require('./models/StudentWork');
@@ -13,9 +16,25 @@ const StudentWork = require('./models/StudentWork');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 // Enable CORS & JSON Parsing
-app.use(cors());
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Ensure local uploads directory exists
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
@@ -50,10 +69,10 @@ if (isCloudinaryConfigured) {
   });
   console.log('Cloudinary is configured and ready.');
 } else {
-  console.log('Cloudinary credentials missing. Falling back to local filesystem storage.');
+  console.warn('CRITICAL: Cloudinary credentials missing. File uploads will fail in production.');
 }
 
-// Multer Storage Configuration (Local fallback)
+// Multer Storage Configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
@@ -63,7 +82,24 @@ const storage = multer.diskStorage({
     cb(null, uniqueSuffix + path.extname(file.originalname));
   }
 });
-const upload = multer({ storage });
+
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = /jpeg|jpg|png|webp/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+  
+  if (extname && mimetype) {
+    return cb(null, true);
+  } else {
+    cb(new Error('Error: Only images (jpeg, jpg, png, webp) are allowed!'));
+  }
+};
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter 
+});
 
 // Helper to seed initial artworks
 async function seedArtworksIfEmpty() {
@@ -206,31 +242,62 @@ app.get('/api/artworks', async (req, res) => {
   }
 });
 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 login requests per `window`
+  message: { success: false, error: 'Too many login attempts, please try again later' }
+});
+
 // Passcode validation check
-app.post('/api/admin/validate-passcode', (req, res) => {
+app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
   const { passcode } = req.body;
-  const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
   
-  if (passcode === adminPasscode) {
+  if (!process.env.ADMIN_PASSCODE) {
+    return res.status(500).json({ success: false, error: 'Server configuration error: Admin passcode not set' });
+  }
+  
+  if (passcode === process.env.ADMIN_PASSCODE) {
+    const token = jwt.sign({ admin: true }, process.env.JWT_SECRET || 'fallback_secret_change_in_production', { expiresIn: '1d' });
+    res.cookie('admin_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
     return res.json({ success: true, message: 'Authenticated successfully' });
   }
   return res.status(401).json({ success: false, error: 'Incorrect passcode' });
 });
 
-// Add new artwork (Upload image + save to MongoDB)
-app.post('/api/artworks', upload.single('image'), async (req, res) => {
+app.post('/api/admin/logout', (req, res) => {
+  res.clearCookie('admin_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+  });
+  return res.json({ success: true });
+});
+
+// Middleware for protected routes
+const authenticateAdmin = (req, res, next) => {
+  const token = req.cookies.admin_token;
+  if (!token) {
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    return res.status(401).json({ error: 'Unauthorized: No token provided' });
+  }
   try {
-    const { passcode, title, year, medium, dimensions, aspect, description, isSold } = req.body;
-    
-    // Auth check
-    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
-    if (passcode !== adminPasscode) {
-      // Clean up file if uploaded locally
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
-      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
-    }
+    jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_change_in_production');
+    next();
+  } catch (err) {
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+  }
+};
+
+// Add new artwork (Upload image + save to MongoDB)
+app.post('/api/artworks', authenticateAdmin, upload.single('image'), async (req, res) => {
+  try {
+    const { title, year, medium, dimensions, aspect, description, isSold } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ error: 'Image file is required' });
@@ -249,11 +316,11 @@ app.post('/api/artworks', upload.single('image'), async (req, res) => {
         fs.unlinkSync(req.file.path);
       } catch (cloudErr) {
         console.error('Cloudinary upload error:', cloudErr);
-        // Fallback to local url if upload fails
-        imageUrl = `/uploads/${req.file.filename}`;
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
       }
     } else {
-      // Fallback: use local backend URL
+      // Cloudinary strictly required, but for local testing:
       imageUrl = `/uploads/${req.file.filename}`;
     }
 
@@ -272,30 +339,20 @@ app.post('/api/artworks', upload.single('image'), async (req, res) => {
     res.status(201).json(newArtwork);
   } catch (err) {
     console.error('Error adding artwork:', err);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
     res.status(500).json({ error: 'Server error saving artwork' });
   }
 });
 
 // Edit/Update artwork
-app.put('/api/artworks/:id', upload.single('image'), async (req, res) => {
+app.put('/api/artworks/:id', authenticateAdmin, upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { passcode, title, year, medium, dimensions, aspect, description, isSold } = req.body;
-
-    // Auth check
-    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
-    if (passcode !== adminPasscode) {
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
-      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
-    }
+    const { title, year, medium, dimensions, aspect, description, isSold } = req.body;
 
     const artwork = await Artwork.findById(id);
     if (!artwork) {
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
+      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
       return res.status(404).json({ error: 'Artwork not found' });
     }
 
@@ -316,9 +373,7 @@ app.put('/api/artworks/:id', upload.single('image'), async (req, res) => {
       if (artwork.image.startsWith('/uploads/')) {
         const oldFileName = artwork.image.split('/').pop();
         const oldFilePath = path.join(uploadsDir, oldFileName);
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
-        }
+        if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
       }
 
       let imageUrl = '';
@@ -331,7 +386,8 @@ app.put('/api/artworks/:id', upload.single('image'), async (req, res) => {
           fs.unlinkSync(req.file.path);
         } catch (cloudErr) {
           console.error('Cloudinary upload error during update:', cloudErr);
-          imageUrl = `/uploads/${req.file.filename}`;
+          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
         }
       } else {
         imageUrl = `/uploads/${req.file.filename}`;
@@ -343,20 +399,15 @@ app.put('/api/artworks/:id', upload.single('image'), async (req, res) => {
     res.json(artwork);
   } catch (err) {
     console.error('Error updating artwork:', err);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
     res.status(500).json({ error: 'Server error updating artwork' });
   }
 });
 
 // Delete artwork
-app.delete('/api/artworks/:id', async (req, res) => {
+app.delete('/api/artworks/:id', authenticateAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { passcode } = req.body; // Passcode can be sent in request body
-
-    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
-    if (passcode !== adminPasscode) {
-      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
-    }
 
     const artwork = await Artwork.findById(id);
     if (!artwork) {
@@ -367,9 +418,7 @@ app.delete('/api/artworks/:id', async (req, res) => {
     if (artwork.image.startsWith('/uploads/')) {
       const fileName = artwork.image.split('/').pop();
       const filePath = path.join(uploadsDir, fileName);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
     await Artwork.findByIdAndDelete(id);
@@ -396,18 +445,9 @@ app.get('/api/student-works', async (req, res) => {
 });
 
 // Add new student work
-app.post('/api/student-works', upload.single('image'), async (req, res) => {
+app.post('/api/student-works', authenticateAdmin, upload.single('image'), async (req, res) => {
   try {
-    const { passcode, title, artist, mentorshipYear, medium, dimensions, concept } = req.body;
-    
-    // Auth check
-    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
-    if (passcode !== adminPasscode) {
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
-      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
-    }
+    const { title, artist, mentorshipYear, medium, dimensions, concept } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ error: 'Image file is required' });
@@ -424,7 +464,8 @@ app.post('/api/student-works', upload.single('image'), async (req, res) => {
         fs.unlinkSync(req.file.path);
       } catch (cloudErr) {
         console.error('Cloudinary upload error:', cloudErr);
-        imageUrl = `/uploads/${req.file.filename}`;
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
       }
     } else {
       imageUrl = `/uploads/${req.file.filename}`;
@@ -444,30 +485,20 @@ app.post('/api/student-works', upload.single('image'), async (req, res) => {
     res.status(201).json(newWork);
   } catch (err) {
     console.error('Error adding student work:', err);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
     res.status(500).json({ error: 'Server error saving student work' });
   }
 });
 
 // Edit/Update student work
-app.put('/api/student-works/:id', upload.single('image'), async (req, res) => {
+app.put('/api/student-works/:id', authenticateAdmin, upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { passcode, title, artist, mentorshipYear, medium, dimensions, concept } = req.body;
-
-    // Auth check
-    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
-    if (passcode !== adminPasscode) {
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
-      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
-    }
+    const { title, artist, mentorshipYear, medium, dimensions, concept } = req.body;
 
     const work = await StudentWork.findById(id);
     if (!work) {
-      if (req.file) {
-        fs.unlinkSync(req.file.path);
-      }
+      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
       return res.status(404).json({ error: 'Student work not found' });
     }
 
@@ -484,9 +515,7 @@ app.put('/api/student-works/:id', upload.single('image'), async (req, res) => {
       if (work.image.startsWith('/uploads/')) {
         const oldFileName = work.image.split('/').pop();
         const oldFilePath = path.join(uploadsDir, oldFileName);
-        if (fs.existsSync(oldFilePath)) {
-          fs.unlinkSync(oldFilePath);
-        }
+        if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
       }
 
       let imageUrl = '';
@@ -499,7 +528,8 @@ app.put('/api/student-works/:id', upload.single('image'), async (req, res) => {
           fs.unlinkSync(req.file.path);
         } catch (cloudErr) {
           console.error('Cloudinary upload error during update:', cloudErr);
-          imageUrl = `/uploads/${req.file.filename}`;
+          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
         }
       } else {
         imageUrl = `/uploads/${req.file.filename}`;
@@ -511,20 +541,15 @@ app.put('/api/student-works/:id', upload.single('image'), async (req, res) => {
     res.json(work);
   } catch (err) {
     console.error('Error updating student work:', err);
+    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
     res.status(500).json({ error: 'Server error updating student work' });
   }
 });
 
 // Delete student work
-app.delete('/api/student-works/:id', async (req, res) => {
+app.delete('/api/student-works/:id', authenticateAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { passcode } = req.body;
-
-    const adminPasscode = process.env.ADMIN_PASSCODE || '123456';
-    if (passcode !== adminPasscode) {
-      return res.status(401).json({ error: 'Unauthorized: Incorrect passcode' });
-    }
 
     const work = await StudentWork.findById(id);
     if (!work) {
@@ -534,9 +559,7 @@ app.delete('/api/student-works/:id', async (req, res) => {
     if (work.image.startsWith('/uploads/')) {
       const fileName = work.image.split('/').pop();
       const filePath = path.join(uploadsDir, fileName);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
     await StudentWork.findByIdAndDelete(id);

@@ -94,32 +94,13 @@ export default function AdminPage() {
 
   // Check sessionStorage for pre-existing session
   useEffect(() => {
-    const savedPasscode = sessionStorage.getItem('admin_passcode');
-    if (savedPasscode) {
-      validateStoredPasscode(savedPasscode);
+    const isLoggedIn = sessionStorage.getItem('admin_logged_in');
+    if (isLoggedIn === 'true') {
+      setIsAuthenticated(true);
+      fetchArtworks();
+      fetchStudentWorks();
     }
   }, []);
-
-  const validateStoredPasscode = async (stored: string) => {
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      const res = await fetch(`${apiUrl}/api/admin/validate-passcode`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode: stored }),
-      });
-      if (res.ok) {
-        setPasscode(stored);
-        setIsAuthenticated(true);
-        fetchArtworks();
-        fetchStudentWorks();
-      } else {
-        sessionStorage.removeItem('admin_passcode');
-      }
-    } catch (err) {
-      console.error('Session validation error:', err);
-    }
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,12 +113,13 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passcode }),
+        credentials: 'include',
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
-        sessionStorage.setItem('admin_passcode', passcode);
+        sessionStorage.setItem('admin_logged_in', 'true');
         setIsAuthenticated(true);
         fetchArtworks();
         fetchStudentWorks();
@@ -152,8 +134,14 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('admin_passcode');
+  const handleLogout = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      await fetch(`${apiUrl}/api/admin/logout`, { method: 'POST', credentials: 'include' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+    sessionStorage.removeItem('admin_logged_in');
     setIsAuthenticated(false);
     setPasscode('');
     setArtworks([]);
@@ -216,7 +204,6 @@ export default function AdminPage() {
     setSubmitSuccess(false);
 
     const formData = new FormData();
-    formData.append('passcode', passcode);
     formData.append('title', title);
     formData.append('medium', medium);
     formData.append('dimensions', dimensions);
@@ -245,6 +232,7 @@ export default function AdminPage() {
       const res = await fetch(endpoint, {
         method,
         body: formData,
+        credentials: 'include',
       });
 
       if (res.ok) {
@@ -291,7 +279,7 @@ export default function AdminPage() {
       const res = await fetch(`${apiUrl}/api/${baseRoute}/${id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passcode }),
+        credentials: 'include',
       });
 
       if (res.ok) {
