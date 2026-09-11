@@ -16,6 +16,7 @@ interface ArtworkType {
   image: string;
   aspect?: string;
   description: string;
+  isSold?: boolean;
 }
 
 const getImageUrl = (imagePath: string) => {
