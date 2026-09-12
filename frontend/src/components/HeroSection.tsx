@@ -418,7 +418,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* RIGHT COLUMN: The Living Gallery Parallax Stack */}
-          <div className="col-span-6 lg:col-span-7 flex justify-center items-center w-full relative h-[50vh] sm:h-[65vh] md:h-[75vh] lg:h-[85vh] select-none overflow-hidden lg:overflow-visible">
+          <div className="col-span-6 lg:col-span-7 flex justify-center items-center w-full relative h-[50vh] sm:h-[65vh] md:h-[75vh] lg:h-[85vh] select-none overflow-visible">
 
             {/* 1. Soft Terracotta Halo */}
             <motion.div
@@ -441,7 +441,7 @@ export default function HeroSection() {
             </motion.div>
 
             {/* Main stack container spanning large viewport coordinates */}
-            <div className="relative w-full h-full flex justify-center items-center translate-x-0 sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 scale-[1.4] sm:scale-[1.2] md:scale-[1.05] lg:scale-100 origin-center">
+            <div className="relative w-[800px] h-[800px] flex justify-center items-center -translate-x-[12vw] sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 scale-[0.33] sm:scale-[0.55] md:scale-[0.7] lg:scale-100 origin-center">
 
               {/* STACK LAYERS */}
               <div className="absolute inset-0 w-full h-full">
