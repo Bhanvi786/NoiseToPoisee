@@ -449,7 +449,7 @@ export default function HeroSection() {
             </motion.div>
 
             {/* Main stack container spanning large viewport coordinates */}
-            <div className="relative w-[800px] h-[800px] flex justify-center items-center -translate-x-[12vw] sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 scale-[0.33] sm:scale-[0.55] md:scale-[0.7] lg:scale-100 origin-center">
+            <div className="relative w-[800px] h-[800px] flex justify-center items-center -translate-x-[24vw] sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 scale-[clamp(0.45,12vw,0.55)] sm:scale-[0.55] md:scale-[0.7] lg:scale-100 origin-center">
 
               {/* STACK LAYERS */}
               <div className="absolute inset-0 w-full h-full">
