@@ -130,8 +130,25 @@ export default function CollectionsSection() {
   const [artworksList, setArtworksList] = useState<ArtworkType[]>([]);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [slowLoading, setSlowLoading] = useState(false);
 
   useEffect(() => {
+    // Try to load from cache immediately
+    const cachedArtworks = localStorage.getItem('collections_artworks_cache');
+    if (cachedArtworks) {
+      try {
+        setArtworksList(JSON.parse(cachedArtworks));
+        setLoading(false); // Hide loading spinner if we have cached data
+      } catch (e) {
+        console.error('Failed to parse cached artworks', e);
+      }
+    }
+
+    // Set a timer to show a slow loading message if it takes > 4 seconds
+    const slowLoadTimer = setTimeout(() => {
+      setSlowLoading(true);
+    }, 4000);
+
     const fetchArtworks = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
@@ -139,17 +156,22 @@ export default function CollectionsSection() {
         if (res.ok) {
           const data = await res.json();
           setArtworksList(data);
+          localStorage.setItem('collections_artworks_cache', JSON.stringify(data));
         } else {
-          setArtworksList(artworks);
+          if (!cachedArtworks) setArtworksList(artworks);
         }
       } catch (err) {
         console.error(err);
-        setArtworksList(artworks);
+        if (!cachedArtworks) setArtworksList(artworks);
       } finally {
         setLoading(false);
+        clearTimeout(slowLoadTimer);
+        setSlowLoading(false);
       }
     };
     fetchArtworks();
+
+    return () => clearTimeout(slowLoadTimer);
   }, []);
 
   let visibleCount = 0;
@@ -213,8 +235,22 @@ export default function CollectionsSection() {
           </div>
         </div>
 
-        {/* Gallery Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-8 lg:gap-12">
+        {/* Loading and Error States */}
+        {loading && !artworksList.length ? (
+          <div className="flex flex-col items-center justify-center h-[40vh] space-y-4">
+            <Loader2 className="w-10 h-10 text-wine animate-spin" />
+            <p className="font-sans text-sm text-charcoal/60 uppercase tracking-widest">
+              Loading Collections...
+            </p>
+            {slowLoading && (
+              <p className="text-xs text-charcoal/50 text-center max-w-sm mt-4 animate-pulse px-4">
+                The server might be waking up (this can take up to a minute). Thank you for your patience!
+              </p>
+            )}
+          </div>
+        ) : (
+          /* Gallery Grid */
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-8 lg:gap-12">
           {filteredArtworks.map((art) => {
             const isVisible = art.isVisible;
             return (
@@ -280,7 +316,8 @@ export default function CollectionsSection() {
               </motion.div>
             );
           })}
-        </div>
+          </div>
+        )}
 
         {hasMore && (
           <div className="flex justify-end mt-12">

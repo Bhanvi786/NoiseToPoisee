@@ -34,25 +34,51 @@ export default function MasonryGallery() {
   const [artworks, setArtworks] = useState<ArtworkType[]>([]);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [slowLoading, setSlowLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Try to load from cache immediately
+    const cachedArtworks = localStorage.getItem('artworks_cache');
+    if (cachedArtworks) {
+      try {
+        setArtworks(JSON.parse(cachedArtworks));
+        setLoading(false); // Hide loading spinner if we have cached data
+      } catch (e) {
+        console.error('Failed to parse cached artworks', e);
+      }
+    }
+
+    // Set a timer to show a slow loading message if it takes > 4 seconds
+    const slowLoadTimer = setTimeout(() => {
+      setSlowLoading(true);
+    }, 4000);
+
     const fetchArtworks = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
         const res = await fetch(`${apiUrl}/api/artworks`);
         if (!res.ok) throw new Error('Failed to fetch artworks');
         const data = await res.json();
+        
         setArtworks(data);
+        localStorage.setItem('artworks_cache', JSON.stringify(data));
+        setError('');
       } catch (err) {
         console.error(err);
-        setError('Could not load artworks. Please check backend connection.');
+        if (!cachedArtworks) {
+          setError('Could not load artworks. Please check backend connection.');
+        }
       } finally {
         setLoading(false);
+        clearTimeout(slowLoadTimer);
+        setSlowLoading(false);
       }
     };
 
     fetchArtworks();
+
+    return () => clearTimeout(slowLoadTimer);
   }, []);
 
   return (
@@ -99,12 +125,17 @@ export default function MasonryGallery() {
         `}</style>
 
         {/* Loading and Error States */}
-        {loading ? (
+        {loading && !artworks.length ? (
           <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
             <Loader2 className="w-10 h-10 text-wine animate-spin" />
             <p className="font-sans text-sm text-charcoal/60 uppercase tracking-widest">
               Curating Exhibition...
             </p>
+            {slowLoading && (
+              <p className="text-xs text-charcoal/50 text-center max-w-sm mt-4 animate-pulse px-4">
+                The server might be waking up (this can take up to a minute). Thank you for your patience!
+              </p>
+            )}
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-[30vh] text-center space-y-4">
