@@ -448,8 +448,24 @@ export default function HeroSection() {
               GANESHA
             </motion.div>
 
-            {/* Main stack container spanning large viewport coordinates */}
-            <div className="relative w-[800px] h-[800px] flex justify-center items-center translate-x-[5vw] translate-y-[2vh] scale-[0.42] md:translate-x-0 md:translate-y-8 sm:translate-x-[clamp(0px,6vw,120px)] md:scale-[0.7] lg:scale-100 origin-center">
+            {/* Mobile Single Composite Collage Image (Mobile Only < 768px) */}
+            <div className="flex md:hidden justify-center items-center w-full relative">
+              <img
+                src="/artwork/a_clean_high_resolution_centered_digital_collage.png"
+                alt="Deepti Aroura Artwork Collage"
+                className="w-[48vw] min-w-[250px] max-w-[330px] h-auto object-contain select-none pointer-events-none drop-shadow-2xl"
+                onError={(e) => {
+                  // Fallback to root public directory if not placed inside /artwork/
+                  const target = e.currentTarget;
+                  if (!target.src.endsWith('/a_clean_high_resolution_centered_digital_collage.png') || target.src.includes('/artwork/')) {
+                    target.src = '/a_clean_high_resolution_centered_digital_collage.png';
+                  }
+                }}
+              />
+            </div>
+
+            {/* Main stack container spanning large viewport coordinates (Desktop Only >= 768px) */}
+            <div className="hidden md:flex relative w-[800px] h-[800px] justify-center items-center md:translate-x-0 md:translate-y-8 md:scale-[0.7] lg:scale-100 origin-center">
 
               {/* STACK LAYERS */}
               <div className="absolute inset-0 w-full h-full">
