@@ -62,8 +62,8 @@ export default function ContactSection() {
             <div className="space-y-6 font-sans">
               <motion.div variants={fadeUp} className="space-y-1">
                 <span className="text-[10px] uppercase tracking-widest text-wine font-medium">Primary Contact</span>
-                <a href="mailto:deepti@noisetopoise.com" className="text-lg text-charcoal hover:text-wine transition-colors font-light block">
-                  deepti@noisetopoise.com
+                <a href="mailto:deeptiarora1881@gmail.com" className="text-lg text-charcoal hover:text-wine transition-colors font-light block">
+                  deeptiarora1881@gmail.com
                 </a>
               </motion.div>
 
@@ -106,7 +106,7 @@ export default function ContactSection() {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="bg-transparent border-b border-wine/10 hover:border-wine/30 focus:border-wine outline-none py-2 text-charcoal font-light transition-colors duration-300"
-                        placeholder="John Doe"
+                        placeholder="Aarav Mehta"
                       />
                     </div>
 
@@ -122,7 +122,7 @@ export default function ContactSection() {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="bg-transparent border-b border-wine/10 hover:border-wine/30 focus:border-wine outline-none py-2 text-charcoal font-light transition-colors duration-300"
-                        placeholder="john@example.com"
+                        placeholder="aarav@example.com"
                       />
                     </div>
                   </div>
