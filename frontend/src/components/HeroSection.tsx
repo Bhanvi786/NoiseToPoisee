@@ -320,12 +320,12 @@ export default function HeroSection() {
     <section
       ref={containerRef}
       id="home"
-      className="relative min-h-[100svh] h-auto md:min-h-0 md:h-[250vh] w-full"
+      className="relative md:h-[250vh] w-full"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
       {/* Sticky screen container (static on mobile) */}
-      <div className="relative md:sticky md:top-0 min-h-[100svh] h-auto md:min-h-0 md:h-screen w-full flex items-start md:items-center overflow-hidden pt-[180px] sm:pt-[220px] pb-[80px] md:pt-0 md:pb-0">
+      <div className="relative md:sticky md:top-0 min-h-[calc(100svh-80px)] h-auto md:min-h-0 md:h-screen w-full flex items-start md:items-center overflow-hidden pt-[30px] pb-[20px] md:pt-0 md:pb-0 mt-[80px] md:mt-0">
 
         {/* Dynamic plaster wall lighting spotlight gradient */}
         <motion.div
