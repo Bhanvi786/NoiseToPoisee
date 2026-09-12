@@ -104,6 +104,21 @@ const upload = multer({
   fileFilter 
 });
 
+// Middleware to gracefully handle Multer errors
+const handleUpload = (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large. Maximum size is 5MB.' });
+      }
+      return res.status(400).json({ error: err.message });
+    } else if (err) {
+      return res.status(500).json({ error: err.message || 'Unknown upload error' });
+    }
+    next();
+  });
+};
+
 // Helper to seed initial artworks
 async function seedArtworksIfEmpty() {
   try {
@@ -298,7 +313,7 @@ const authenticateAdmin = (req, res, next) => {
 };
 
 // Add new artwork (Upload image + save to MongoDB)
-app.post('/api/artworks', authenticateAdmin, upload.single('image'), async (req, res) => {
+app.post('/api/artworks', authenticateAdmin, handleUpload, async (req, res) => {
   try {
     const { title, year, medium, dimensions, aspect, description, isSold } = req.body;
 
@@ -348,7 +363,7 @@ app.post('/api/artworks', authenticateAdmin, upload.single('image'), async (req,
 });
 
 // Edit/Update artwork
-app.put('/api/artworks/:id', authenticateAdmin, upload.single('image'), async (req, res) => {
+app.put('/api/artworks/:id', authenticateAdmin, handleUpload, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, year, medium, dimensions, aspect, description, isSold } = req.body;
@@ -448,7 +463,7 @@ app.get('/api/student-works', async (req, res) => {
 });
 
 // Add new student work
-app.post('/api/student-works', authenticateAdmin, upload.single('image'), async (req, res) => {
+app.post('/api/student-works', authenticateAdmin, handleUpload, async (req, res) => {
   try {
     const { title, artist, mentorshipYear, medium, dimensions, concept } = req.body;
 
@@ -494,7 +509,7 @@ app.post('/api/student-works', authenticateAdmin, upload.single('image'), async 
 });
 
 // Edit/Update student work
-app.put('/api/student-works/:id', authenticateAdmin, upload.single('image'), async (req, res) => {
+app.put('/api/student-works/:id', authenticateAdmin, handleUpload, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, artist, mentorshipYear, medium, dimensions, concept } = req.body;
