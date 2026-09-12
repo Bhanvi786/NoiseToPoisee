@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Cormorant_Garamond, Alex_Brush } from "next/font/google";
 import "./globals.css";
+import ServerWakeup from "@/components/ServerWakeup";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -41,6 +42,7 @@ export default function RootLayout({
       className={`${inter.variable} ${cormorant.variable} ${signature.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col paper-texture text-charcoal relative">
+        <ServerWakeup />
         <div className="grain-overlay" />
         <main className="flex-grow flex flex-col">{children}</main>
       </body>
