@@ -330,53 +330,43 @@ export default function HeroSection() {
 
 
 
-        {/* TOP-LEFT: Near the noiseToPoise logo, add a very small hand-painted abstract brushstroke/artist mark */}
-        <div className="absolute top-6 sm:top-8 left-0 right-0 z-40 pointer-events-none">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 w-full relative">
-            <motion.div
-              style={{ opacity: fadeOutScroll }}
-              className="absolute left-[175px] sm:left-[190px] top-[4px]"
-            >
-              <svg width="28" height="14" viewBox="0 0 28 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-85">
-                <path d="M2 10C6 7.5 11.5 4.5 17 5C19.8 5.2 22 6.2 23.2 7.8C20.8 7 17.2 6.6 12.8 7C8.4 7.4 5.2 9.4 3.2 11C2.5 11.6 1.6 10.6 2 10Z" fill="#8F1D32" />
-                <circle cx="21" cy="9.5" r="0.7" fill="#8F1D32" />
-                <circle cx="23.5" cy="11" r="0.4" fill="#8F1D32" />
-              </svg>
-            </motion.div>
-          </div>
-        </div>
-
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center z-10 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 w-full grid grid-cols-12 gap-2 sm:gap-4 lg:gap-8 items-center z-10 relative">
 
           {/* LEFT COLUMN: Stable Editorial Typography */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="lg:col-span-5 flex flex-col space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10 lg:pr-8"
+            className="col-span-6 lg:col-span-5 flex flex-col space-y-3 sm:space-y-6 md:space-y-8 lg:space-y-10 lg:pr-8"
           >
             {/* Small Uppercase Quote */}
             <div className="overflow-hidden">
               <motion.p
                 variants={fadeRevealVariants}
-                className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-[0.15em] sm:tracking-[0.25em] text-charcoal/50 leading-relaxed font-sans max-w-sm"
+                className="text-[8px] sm:text-[10px] md:text-xs uppercase tracking-[0.1em] sm:tracking-[0.25em] text-charcoal/50 leading-relaxed font-sans max-w-sm"
               >
-                &ldquo;Art is not what you see, but what you make others see.&rdquo;
+                NOT WHAT YOU SEE, BUT<br />WHAT YOU MAKE OTHERS SEE.
               </motion.p>
+              <motion.div variants={fadeRevealVariants} className="mt-1 sm:mt-2">
+                <svg width="28" height="14" viewBox="0 0 28 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-85 scale-75 sm:scale-100 origin-left">
+                  <path d="M2 10C6 7.5 11.5 4.5 17 5C19.8 5.2 22 6.2 23.2 7.8C20.8 7 17.2 6.6 12.8 7C8.4 7.4 5.2 9.4 3.2 11C2.5 11.6 1.6 10.6 2 10Z" fill="#8F1D32" />
+                  <circle cx="21" cy="9.5" r="0.7" fill="#8F1D32" />
+                  <circle cx="23.5" cy="11" r="0.4" fill="#8F1D32" />
+                </svg>
+              </motion.div>
             </div>
 
             {/* Large Serif Typography */}
-            <div className="space-y-1">
+            <div className="space-y-0 sm:space-y-1">
               <motion.h1
                 variants={fadeRevealVariants}
-                className="font-serif text-[clamp(2.5rem,10vw,7.5rem)] font-light tracking-tight text-charcoal leading-[0.95]"
+                className="font-serif text-[clamp(1.75rem,8vw,7.5rem)] font-light tracking-tight text-charcoal leading-[0.95]"
               >
                 DEEPTI
               </motion.h1>
               <motion.h1
                 variants={fadeRevealVariants}
-                className="font-serif text-[clamp(2.5rem,10vw,7.5rem)] font-light tracking-tight text-charcoal leading-[0.95]"
+                className="font-serif text-[clamp(1.75rem,8vw,7.5rem)] font-light tracking-tight text-charcoal leading-[0.95]"
               >
                 AROURA
               </motion.h1>
@@ -385,18 +375,18 @@ export default function HeroSection() {
             {/* Artist Subtitle */}
             <motion.div
               variants={fadeRevealVariants}
-              className="flex items-center space-x-6 pt-2"
+              className="flex items-center space-x-2 sm:space-x-6 pt-1 sm:pt-2 flex-wrap"
             >
               <div className="flex flex-col">
-                <span className="text-xs sm:text-sm uppercase tracking-[0.25em] font-sans font-medium text-wine">
+                <span className="text-[9px] sm:text-sm uppercase tracking-[0.2em] sm:tracking-[0.25em] font-sans font-medium text-wine">
                   Artist
                 </span>
-                <span className="text-[10px] sm:text-xs text-charcoal/50 tracking-wider">
+                <span className="text-[8px] sm:text-xs text-charcoal/50 tracking-wider">
                   Paintings &amp; Fine Art
                 </span>
               </div>
-              <div className="h-8 w-[1px] bg-wine/15" />
-              <div className="font-signature text-3xl sm:text-4xl text-brown/70 leading-none">
+              <div className="h-5 sm:h-8 w-[1px] bg-wine/15" />
+              <div className="font-signature text-xl sm:text-3xl md:text-4xl text-brown/70 leading-none pb-1 sm:pb-0">
                 Deepti Aroura
               </div>
             </motion.div>
@@ -404,20 +394,20 @@ export default function HeroSection() {
             {/* Short One-Line Description */}
             <motion.p
               variants={fadeRevealVariants}
-              className="text-sm sm:text-base text-charcoal/70 font-sans font-light leading-relaxed max-w-sm"
+              className="text-[10px] sm:text-sm md:text-base text-charcoal/70 font-sans font-light leading-relaxed max-w-sm pr-2"
             >
               Translating the world&apos;s noise into moments of absolute poise.
             </motion.p>
 
             {/* Primary CTA */}
-            <motion.div variants={fadeRevealVariants} className="pt-2">
+            <motion.div variants={fadeRevealVariants} className="pt-1 sm:pt-2">
               <a
                 href="#gallery"
-                className="inline-flex items-center space-x-4 group text-xs uppercase tracking-[0.25em] font-sans font-semibold text-charcoal border-b border-charcoal/20 pb-3 hover:border-wine hover:text-wine transition-all duration-500 ease-out"
+                className="inline-flex items-center space-x-2 sm:space-x-4 group text-[8px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.25em] font-sans font-semibold text-charcoal border-b border-charcoal/20 pb-2 sm:pb-3 hover:border-wine hover:text-wine transition-all duration-500 ease-out"
               >
                 <span>Explore Collection</span>
                 <motion.span
-                  animate={{ x: [0, 6, 0] }}
+                  animate={{ x: [0, 4, 0] }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                   className="text-wine group-hover:translate-x-2 transition-transform duration-300"
                 >
@@ -428,7 +418,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* RIGHT COLUMN: The Living Gallery Parallax Stack */}
-          <div className="lg:col-span-7 flex justify-center items-center w-full relative h-[50vh] sm:h-[65vh] md:h-[75vh] lg:h-[85vh] select-none overflow-hidden lg:overflow-visible">
+          <div className="col-span-6 lg:col-span-7 flex justify-center items-center w-full relative h-[50vh] sm:h-[65vh] md:h-[75vh] lg:h-[85vh] select-none overflow-hidden lg:overflow-visible">
 
             {/* 1. Soft Terracotta Halo */}
             <motion.div
@@ -451,7 +441,7 @@ export default function HeroSection() {
             </motion.div>
 
             {/* Main stack container spanning large viewport coordinates */}
-            <div className="relative w-full h-full flex justify-center items-center translate-x-0 sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 scale-[1.6] sm:scale-[1.2] md:scale-[1.05] lg:scale-100 origin-center">
+            <div className="relative w-full h-full flex justify-center items-center translate-x-0 sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 scale-[1.4] sm:scale-[1.2] md:scale-[1.05] lg:scale-100 origin-center">
 
               {/* STACK LAYERS */}
               <div className="absolute inset-0 w-full h-full">
