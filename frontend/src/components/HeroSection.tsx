@@ -325,7 +325,7 @@ export default function HeroSection() {
       onMouseLeave={handleMouseLeave}
     >
       {/* Sticky screen container (static on mobile) */}
-      <div className="relative md:sticky md:top-0 min-h-[calc(100svh-80px)] h-auto md:min-h-0 md:h-screen w-full flex items-start md:items-center overflow-hidden pt-[30px] pb-[20px] md:pt-0 md:pb-0 mt-[80px] md:mt-0">
+      <div className="relative md:sticky md:top-0 h-auto md:h-screen w-full flex items-start md:items-center overflow-hidden pt-4 pb-20 md:pt-0 md:pb-0 mt-[60px] md:mt-0">
 
         {/* Dynamic plaster wall lighting spotlight gradient */}
         <motion.div
