@@ -49,9 +49,8 @@ export default function SplashScreen() {
             {/* Divider */}
             <div className="w-16 h-[1.5px] bg-[#C1A78B] mb-8" />
             
-            {/* Brand Text */}
             <h1 className="text-sm sm:text-base tracking-[0.3em] uppercase text-[#A37B55] font-sans font-medium mb-3">
-              noiseToPoise
+              Artograph
             </h1>
             
             {/* Subtext */}
