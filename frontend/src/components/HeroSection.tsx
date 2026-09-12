@@ -532,7 +532,7 @@ export default function HeroSection() {
                 {/* Layer 1 - Background Artwork 8 (Bottom Center Gap) */}
                 <motion.div
                   style={{ y: yBg8, x: xBg8 }}
-                  className="absolute w-[22.4%] aspect-[3/4] left-[35.6%] bottom-[11.6%] z-18 select-none pointer-events-none opacity-95"
+                  className="absolute w-[22.4%] aspect-[3/4] left-[35.6%] top-[58.6%] z-18 select-none pointer-events-none opacity-95"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -560,7 +560,7 @@ export default function HeroSection() {
                 {/* Layer 2 - Secondary Artwork 4 (Partially Visible, e.g. /artwork/4.jpeg) */}
                 <motion.div
                   style={{ y: ySec4, x: xSec4 }}
-                  className="absolute w-[27.2%] aspect-[3/4] left-[13.2%] bottom-[18%] z-20 select-none pointer-events-none opacity-100"
+                  className="absolute w-[27.2%] aspect-[3/4] left-[13.2%] top-[45.8%] z-20 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
@@ -616,7 +616,7 @@ export default function HeroSection() {
                 {/* Layer 2 - Secondary Artwork 3 (Slightly Right and Lower, e.g. /artwork/3.jpeg) */}
                 <motion.div
                   style={{ y: ySec3, x: xSec3 }}
-                  className="absolute w-[29.6%] aspect-[3/4] right-[11.6%] bottom-[14.8%] z-25 select-none pointer-events-none opacity-100"
+                  className="absolute w-[29.6%] aspect-[3/4] right-[11.6%] top-[45.8%] z-25 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
                   <motion.div
