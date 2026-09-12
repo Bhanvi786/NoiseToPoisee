@@ -448,8 +448,101 @@ export default function HeroSection() {
               GANESHA
             </motion.div>
 
+            {/* ===== MOBILE COMPACT COLLAGE (below 768px) ===== */}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="md:hidden relative select-none pointer-events-none z-10"
+              style={{ width: 'clamp(280px, 78vw, 340px)', height: 'clamp(360px, 100vw, 440px)' }}
+            >
+              {/* Portrait - top center */}
+              <motion.div
+                variants={fadeRevealVariants}
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '22%', aspectRatio: '3/4', left: '40%', top: '0%', zIndex: 12 }}
+              >
+                <Image src={artworks[6].image} alt={artworks[6].title} fill className="object-cover filter brightness-95" />
+              </motion.div>
+
+              {/* Orange Ganesha - upper left */}
+              <motion.div
+                variants={fadeRevealVariants}
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '27%', aspectRatio: '3/4', left: '8%', top: '8%', zIndex: 10 }}
+              >
+                <Image src={artworks[4].image} alt={artworks[4].title} fill className="object-cover filter brightness-95" />
+              </motion.div>
+
+              {/* Woman - upper right */}
+              <motion.div
+                variants={fadeRevealVariants}
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '30%', aspectRatio: '3/4', right: '5%', top: '6%', zIndex: 15 }}
+              >
+                <Image src={artworks[3].image} alt={artworks[3].title} fill className="object-cover filter brightness-95" />
+              </motion.div>
+
+              {/* Deer (Courtyard Thread) - middle left */}
+              <motion.div
+                variants={fadeRevealVariants}
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '26%', aspectRatio: '3/4', left: '0%', top: '30%', zIndex: 22 }}
+              >
+                <Image src={artworks[5].image} alt={artworks[5].title} fill className="object-cover filter brightness-95" />
+              </motion.div>
+
+              {/* MAIN GANESHA - center, largest */}
+              <motion.div
+                variants={mainArtworkVariants}
+                initial="hidden"
+                animate="visible"
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '46%', aspectRatio: '3/4', left: '27%', top: '20%', zIndex: 40, boxShadow: '0 8px 32px rgba(26,26,26,0.18)' }}
+              >
+                <Image src={artworks[0].image} alt={artworks[0].title} fill className="object-cover" priority />
+              </motion.div>
+
+              {/* Flower - middle right */}
+              <motion.div
+                variants={fadeRevealVariants}
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '28%', aspectRatio: '3/4', right: '0%', top: '34%', zIndex: 28 }}
+              >
+                <Image src={artworks[8].image} alt={artworks[8].title} fill className="object-cover filter brightness-95" />
+              </motion.div>
+
+              {/* Abstract (Divine Presence) - lower left */}
+              <motion.div
+                variants={fadeRevealVariants}
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '30%', aspectRatio: '3/4', left: '10%', top: '58%', zIndex: 20 }}
+              >
+                <Image src={artworks[2].image} alt={artworks[2].title} fill className="object-cover filter brightness-95" />
+              </motion.div>
+
+              {/* Colorful Ganesha (Solitude of Autumn) - lower right */}
+              <motion.div
+                variants={fadeRevealVariants}
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '32%', aspectRatio: '3/4', right: '6%', top: '55%', zIndex: 25 }}
+              >
+                <Image src={artworks[1].image} alt={artworks[1].title} fill className="object-cover filter brightness-95" />
+              </motion.div>
+
+              {/* Fruit (Infinite Grace) - bottom center */}
+              <motion.div
+                variants={fadeRevealVariants}
+                className="absolute museum-canvas overflow-hidden"
+                style={{ width: '24%', aspectRatio: '3/4', left: '38%', top: '72%', zIndex: 18 }}
+              >
+                <Image src={artworks[7].image} alt={artworks[7].title} fill className="object-cover filter brightness-95" />
+              </motion.div>
+            </motion.div>
+
+            {/* ===== DESKTOP PARALLAX COLLAGE (768px and above) ===== */}
             {/* Main stack container spanning large viewport coordinates */}
-            <div className="relative w-[800px] h-[800px] flex justify-center items-center -translate-x-[24vw] sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 scale-[clamp(0.45,12vw,0.55)] sm:scale-[0.55] md:scale-[0.7] lg:scale-100 origin-center">
+            <div className="hidden md:flex relative w-[800px] h-[800px] justify-center items-center sm:translate-x-[clamp(0px,6vw,120px)] translate-y-2 sm:translate-y-4 md:translate-y-8 md:scale-[0.7] lg:scale-100 origin-center">
 
               {/* STACK LAYERS */}
               <div className="absolute inset-0 w-full h-full">
