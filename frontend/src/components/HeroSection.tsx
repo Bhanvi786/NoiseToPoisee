@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useScroll, useTransform, useMotionValueEvent, motion, AnimatePresence, useMotionValue, useSpring, useMotionTemplate } from 'framer-motion';
 import Image from 'next/image';
 
@@ -76,6 +76,14 @@ export default function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const shouldReduceMotion = useReducedMotion();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile(); // Check initially
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Monitor scroll progress of the Hero section (250vh scroll zone)
   const { scrollYProgress } = useScroll({
@@ -447,7 +455,7 @@ export default function HeroSection() {
               <div className="absolute inset-0 w-full h-full">
                 {/* Layer 1 - Background Artwork 6 (Subtle Background, e.g. /artwork/6.jpeg) */}
                 <motion.div
-                  style={{ y: yBg6, x: xBg6 }}
+                  style={{ y: isMobile ? 0 : yBg6, x: isMobile ? 0 : xBg6 }}
                   className="absolute w-[22.4%] aspect-[3/4] left-[16.4%] top-[11.6%] z-10 select-none pointer-events-none opacity-90"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
@@ -475,7 +483,7 @@ export default function HeroSection() {
 
                 {/* Layer 1 - Background Artwork 7 (Top Center Gap) */}
                 <motion.div
-                  style={{ y: yBg7, x: xBg7 }}
+                  style={{ y: isMobile ? 0 : yBg7, x: isMobile ? 0 : xBg7 }}
                   className="absolute w-[20.8%] aspect-[3/4] left-[38.8%] top-[2%] z-12 select-none pointer-events-none opacity-90"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
@@ -503,7 +511,7 @@ export default function HeroSection() {
 
                 {/* Layer 1 - Background Artwork 5 (Further Behind, e.g. /artwork/5.jpeg) */}
                 <motion.div
-                  style={{ y: yBg5, x: xBg5 }}
+                  style={{ y: isMobile ? 0 : yBg5, x: isMobile ? 0 : xBg5 }}
                   className="absolute w-[25.6%] aspect-[3/4] right-[13.2%] top-[13.2%] z-15 select-none pointer-events-none opacity-95"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
@@ -531,7 +539,7 @@ export default function HeroSection() {
 
                 {/* Layer 1 - Background Artwork 8 (Bottom Center Gap) */}
                 <motion.div
-                  style={{ y: yBg8, x: xBg8 }}
+                  style={{ y: isMobile ? 0 : yBg8, x: isMobile ? 0 : xBg8 }}
                   className="absolute w-[22.4%] aspect-[3/4] left-[35.6%] top-[58.6%] z-18 select-none pointer-events-none opacity-95"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
@@ -559,7 +567,7 @@ export default function HeroSection() {
 
                 {/* Layer 2 - Secondary Artwork 4 (Partially Visible, e.g. /artwork/4.jpeg) */}
                 <motion.div
-                  style={{ y: ySec4, x: xSec4 }}
+                  style={{ y: isMobile ? 0 : ySec4, x: isMobile ? 0 : xSec4 }}
                   className="absolute w-[27.2%] aspect-[3/4] left-[13.2%] top-[45.8%] z-20 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
@@ -587,7 +595,7 @@ export default function HeroSection() {
 
                 {/* Layer 2 - Secondary Artwork 9 (Left Center Gap) */}
                 <motion.div
-                  style={{ y: ySec9, x: xSec9 }}
+                  style={{ y: isMobile ? 0 : ySec9, x: isMobile ? 0 : xSec9 }}
                   className="absolute w-[24%] aspect-[3/4] left-[2%] top-[29.2%] z-22 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
@@ -615,7 +623,7 @@ export default function HeroSection() {
 
                 {/* Layer 2 - Secondary Artwork 3 (Slightly Right and Lower, e.g. /artwork/3.jpeg) */}
                 <motion.div
-                  style={{ y: ySec3, x: xSec3 }}
+                  style={{ y: isMobile ? 0 : ySec3, x: isMobile ? 0 : xSec3 }}
                   className="absolute w-[29.6%] aspect-[3/4] right-[11.6%] top-[45.8%] z-25 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
@@ -643,7 +651,7 @@ export default function HeroSection() {
 
                 {/* Layer 2 - Secondary Artwork 10 (Right Center Gap) */}
                 <motion.div
-                  style={{ y: ySec10, x: xSec10 }}
+                  style={{ y: isMobile ? 0 : ySec10, x: isMobile ? 0 : xSec10 }}
                   className="absolute w-[25.6%] aspect-[3/4] right-[-2%] top-[27.6%] z-28 select-none pointer-events-none opacity-100"
                 >
                   {/* Entrance slide-out from behind Ganesha */}
@@ -674,7 +682,7 @@ export default function HeroSection() {
                   variants={mainArtworkVariants}
                   initial="hidden"
                   animate="visible"
-                  style={{ y: yMain, x: xMain, scale: mainScale, boxShadow: shadowStyle }}
+                  style={{ y: isMobile ? 0 : yMain, x: isMobile ? 0 : xMain, scale: mainScale, boxShadow: shadowStyle }}
                   className="absolute w-[38.4%] aspect-[3/4] z-40 left-[30.8%] top-[22.8%] transition-shadow duration-300 select-none"
                 >
                   {/* Organic float motion */}
@@ -713,7 +721,7 @@ export default function HeroSection() {
                   variants={petalVariants}
                   initial="hidden"
                   animate="visible"
-                  style={{ y: yPetals, x: mousePetalsX }}
+                  style={{ y: isMobile ? 0 : yPetals, x: isMobile ? 0 : mousePetalsX }}
                   className="absolute inset-0 pointer-events-none z-50"
                 >
                   {/* Petal 1 */}
