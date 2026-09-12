@@ -113,13 +113,15 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passcode }),
-        credentials: 'include',
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
         sessionStorage.setItem('admin_logged_in', 'true');
+        if (data.token) {
+          sessionStorage.setItem('admin_token', data.token);
+        }
         setIsAuthenticated(true);
         fetchArtworks();
         fetchStudentWorks();
@@ -137,11 +139,12 @@ export default function AdminPage() {
   const handleLogout = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      await fetch(`${apiUrl}/api/admin/logout`, { method: 'POST', credentials: 'include' });
+      await fetch(`${apiUrl}/api/admin/logout`, { method: 'POST' });
     } catch (err) {
       console.error('Logout error:', err);
     }
     sessionStorage.removeItem('admin_logged_in');
+    sessionStorage.removeItem('admin_token');
     setIsAuthenticated(false);
     setPasscode('');
     setArtworks([]);
@@ -229,10 +232,16 @@ export default function AdminPage() {
       const baseRoute = isExhibition ? 'artworks' : 'student-works';
       const endpoint = editId ? `${apiUrl}/api/${baseRoute}/${editId}` : `${apiUrl}/api/${baseRoute}`;
 
+      const token = sessionStorage.getItem('admin_token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch(endpoint, {
         method,
+        headers,
         body: formData,
-        credentials: 'include',
       });
 
       if (res.ok) {
@@ -276,10 +285,15 @@ export default function AdminPage() {
     const baseRoute = isExhibition ? 'artworks' : 'student-works';
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const token = sessionStorage.getItem('admin_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch(`${apiUrl}/api/${baseRoute}/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers,
       });
 
       if (res.ok) {

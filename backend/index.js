@@ -276,29 +276,28 @@ app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
   
   if (passcode === process.env.ADMIN_PASSCODE) {
     const token = jwt.sign({ admin: true }, process.env.JWT_SECRET || 'fallback_secret_change_in_production', { expiresIn: '1d' });
-    res.cookie('admin_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
-    });
-    return res.json({ success: true, message: 'Authenticated successfully' });
+    // Return token in response body so frontend can use Authorization header
+    return res.json({ success: true, message: 'Authenticated successfully', token });
   }
   return res.status(401).json({ success: false, error: 'Incorrect passcode' });
 });
 
 app.post('/api/admin/logout', (req, res) => {
-  res.clearCookie('admin_token', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-  });
+  // Token-based auth: nothing to clear server-side, frontend handles removal
   return res.json({ success: true });
 });
 
 // Middleware for protected routes
 const authenticateAdmin = (req, res, next) => {
-  const token = req.cookies.admin_token;
+  // Accept token from Authorization header (preferred) or cookie (fallback)
+  let token = null;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else {
+    token = req.cookies.admin_token;
+  }
+  
   if (!token) {
     if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
     return res.status(401).json({ error: 'Unauthorized: No token provided' });
