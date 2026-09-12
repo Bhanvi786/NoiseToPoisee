@@ -7,19 +7,21 @@ export default function SplashScreen() {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {
-    // Hide the splash screen after 3 seconds
+    if (isVisible) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 3000);
-
-    // Lock body scroll while splash screen is visible
-    document.body.style.overflow = 'hidden';
     
     return () => {
       clearTimeout(timer);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
-  }, []);
+  }, [isVisible]);
 
   return (
     <AnimatePresence>
