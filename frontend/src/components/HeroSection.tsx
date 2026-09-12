@@ -320,12 +320,12 @@ export default function HeroSection() {
     <section
       ref={containerRef}
       id="home"
-      className="relative h-[150vh] sm:h-[200vh] md:h-[250vh] w-full"
+      className="relative min-h-[100svh] h-auto md:min-h-0 md:h-[250vh] w-full"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Sticky screen container */}
-      <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden">
+      {/* Sticky screen container (static on mobile) */}
+      <div className="relative md:sticky md:top-0 min-h-[100svh] h-auto md:min-h-0 md:h-screen w-full flex items-start md:items-center overflow-hidden pt-[180px] sm:pt-[220px] pb-[80px] md:pt-0 md:pb-0">
 
         {/* Dynamic plaster wall lighting spotlight gradient */}
         <motion.div
@@ -426,7 +426,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* RIGHT COLUMN: The Living Gallery Parallax Stack */}
-          <div className="col-span-6 lg:col-span-7 flex justify-center items-center w-full relative h-[50vh] sm:h-[65vh] md:h-[75vh] lg:h-[85vh] select-none overflow-visible">
+          <div className="col-span-6 lg:col-span-7 flex justify-center items-center w-full relative h-auto md:h-[75vh] lg:h-[85vh] select-none overflow-visible">
 
             {/* 1. Soft Terracotta Halo */}
             <motion.div
