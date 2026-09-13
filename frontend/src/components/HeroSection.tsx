@@ -399,13 +399,6 @@ export default function HeroSection() {
               </div>
             </motion.div>
 
-            {/* Short One-Line Description */}
-            <motion.p
-              variants={fadeRevealVariants}
-              className="text-[10px] sm:text-sm md:text-base text-charcoal/70 font-sans font-light leading-relaxed max-w-sm pr-2"
-            >
-              Translating the world&apos;s noise into moments of absolute poise.
-            </motion.p>
 
             {/* Art Quote */}
             <motion.blockquote
@@ -415,9 +408,7 @@ export default function HeroSection() {
               <p className="text-[9px] sm:text-[11px] md:text-xs text-charcoal/50 font-sans font-light italic leading-relaxed tracking-wide">
                 &ldquo;Every canvas is a journey — from the chaos of emotion to the clarity of form.&rdquo;
               </p>
-              <span className="mt-1 block text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-wine/60 font-sans font-medium">
-                — Deepti Aroura
-              </span>
+
             </motion.blockquote>
 
 
