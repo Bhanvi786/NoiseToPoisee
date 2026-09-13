@@ -104,7 +104,7 @@ export default function Navbar() {
           {/* Right side: Social Icons + Menu Button */}
           <div className="flex items-center space-x-4">
             {/* Social icons */}
-            <div className="hidden sm:flex items-center space-x-3">
+            <div className="flex items-center space-x-3">
               {/* Instagram */}
               <a
                 href="https://www.instagram.com/deeptiaroura"
