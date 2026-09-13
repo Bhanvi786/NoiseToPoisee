@@ -80,7 +80,7 @@ export default function AboutSection() {
               <span className="text-xs uppercase tracking-[0.3em] text-wine font-medium font-sans">
                 Philosophy
               </span>
-              <h2 className="font-serif text-[clamp(1.75rem,5vw,3.75rem)] font-light text-charcoal leading-tight">
+              <h2 className="font-serif text-[clamp(1.75rem,5vw,3.75rem)] font-light text-charcoal leading-tight text-balance">
                 Two decades of colour, form and the quiet joy of creating.
               </h2>
             </motion.div>
