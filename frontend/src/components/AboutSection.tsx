@@ -89,12 +89,15 @@ export default function AboutSection() {
             <motion.div variants={fadeUpVariants} className="space-y-6 text-charcoal/80 font-sans leading-relaxed text-base md:text-lg font-light">
               <p>
                 <span className="font-serif text-6xl float-left mr-3 mt-1 text-wine font-light leading-[0.8] select-none">
-                  F
+                  D
                 </span>
-                or over a decade, Deepti Aroura has been exploring the subtle tensions between stillness and chaos. Her practice is rooted in the belief that art is a sanctuary—a translation of modern sensory overload into canvas-bound equilibrium. Through layered oil pigments, rich organic textures, and bold strokes of deep wine red, she creates a physical space for silence.
+                eepti Aroura is a self-taught contemporary artist whose artistic journey spans over two decades. Driven by an instinctive connection with colour, form and creative expression, she has built an evolving body of work through years of exploration across diverse artistic mediums.
               </p>
               <p>
-                Her creative journey is heavily inspired by classical Indian aesthetic traditions combined with contemporary minimalist design. Each canvas is a dialogue between light, structure, and emotional weight, built slowly over months of contemplation and paint application in her sun-drenched studio.
+                Her practice has extended beyond personal expression into 72 commissioned works, created for art lovers and collectors around the world.
+              </p>
+              <p>
+                Alongside her own artistic practice, Deepti is dedicated to nurturing creativity in others. Through her art mentorship, she works with young and adults alike, encouraging them to explore their individuality, develop artistic confidence and discover the joy of creating.
               </p>
             </motion.div>
 
@@ -104,7 +107,7 @@ export default function AboutSection() {
               className="border-l-2 border-wine pl-6 py-2 my-8 italic"
             >
               <p className="font-serif text-xl sm:text-2xl text-charcoal/90 leading-relaxed font-light">
-                &ldquo;Stillness is not the absence of sound, but the presence of focus. My canvas is where noise finds its poise.&rdquo;
+                &ldquo;For Deepti, art is not simply about creating an image—it is about creating an experience, a connection and a lasting sense of beauty.&rdquo;
               </p>
             </motion.blockquote>
 
@@ -112,18 +115,18 @@ export default function AboutSection() {
             <motion.div variants={fadeUpVariants} className="grid grid-cols-2 gap-8 pt-6 border-t border-wine/10">
               <div>
                 <h4 className="text-xs uppercase tracking-[0.2em] font-sans font-medium text-wine mb-2">
-                  Solo Exhibitions
+                  Commissioned Works
                 </h4>
                 <p className="text-sm text-charcoal/70 leading-relaxed font-sans font-light">
-                  Mumbai, Delhi, London, Paris, New York
+                  72 works for collectors worldwide
                 </p>
               </div>
               <div>
                 <h4 className="text-xs uppercase tracking-[0.2em] font-sans font-medium text-wine mb-2">
-                  Focus Areas
+                  Practice
                 </h4>
                 <p className="text-sm text-charcoal/70 leading-relaxed font-sans font-light">
-                  Classical Realism, Contemporary Textures, Oil on Canvas
+                  Fine Art &amp; Creative Mentorship
                 </p>
               </div>
             </motion.div>
