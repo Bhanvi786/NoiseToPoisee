@@ -9,7 +9,7 @@ const cloudinary = require('cloudinary').v2;
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const Artwork = require('./models/Artwork');
 const StudentWork = require('./models/StudentWork');
@@ -643,67 +643,54 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
     return res.status(400).json({ success: false, error: errors[0] });
   }
 
-  // --- Gmail credentials check ---
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.error('[contact] Gmail credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
+  // --- Resend API key check ---
+  if (!process.env.RESEND_API_KEY) {
+    console.error('[contact] Resend API key not configured. Set RESEND_API_KEY.');
     return res.status(500).json({
       success: false,
       error: 'Unable to send your message right now. Please try again later.'
     });
   }
 
-  // --- Build Nodemailer transporter ---
-  // Port 465 (SMTPS) is blocked by Render. Use port 587 (STARTTLS) instead.
-  // family: 4 forces IPv4 to avoid ENETUNREACH errors caused by Render's IPv6 routing to Google.
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,           // false = STARTTLS (upgraded after connect), not SSL-on-connect
-    family: 4,               // force IPv4 — Render cannot reach Google over IPv6
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD
-    },
-    tls: { rejectUnauthorized: true },
-    connectionTimeout: 15000, // 15 seconds
-    greetingTimeout: 15000,
-    socketTimeout: 20000
-  });
+  // --- Build Resend client (HTTPS API — works on all Render tiers, no SMTP needed) ---
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
-  // --- Compose email ---
-  // Only the validated, trimmed visitor email is placed in Reply-To — never blindly injected into headers
-  const mailOptions = {
-    from: `"Artograph Contact" <${process.env.GMAIL_USER}>`,
-    to:      'deeptiarora1881@gmail.com',
-    replyTo: email,
-    subject: `New Contact Inquiry from ${name}`,
-    text: [
-      `Name:    ${name}`,
-      `Email:   ${email}`,
-      ``,
-      `Message:`,
-      message
-    ].join('\n'),
-    html: `
-      <div style="font-family:Georgia,serif;max-width:600px;margin:auto;padding:32px;background:#FDFBF7;border:1px solid #e5e0d8;border-radius:8px">
-        <h2 style="font-weight:400;color:#3d1f2b;margin-bottom:4px">New Contact Inquiry</h2>
-        <p style="font-size:12px;color:#888;letter-spacing:0.1em;text-transform:uppercase;margin-top:0">Artograph</p>
-        <hr style="border:none;border-top:1px solid #e5e0d8;margin:20px 0"/>
-        <p style="margin:0 0 6px"><strong>Name:</strong> ${name.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</p>
-        <p style="margin:0 0 20px"><strong>Email:</strong> ${email.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</p>
-        <p style="margin:0 0 6px"><strong>Message:</strong></p>
-        <div style="background:#f4ede3;padding:16px;border-radius:4px;white-space:pre-wrap;font-size:14px;color:#444">${message.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</div>
-        <hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0"/>
-        <p style="font-size:11px;color:#aaa">Reply to this email to respond directly to the visitor.</p>
-      </div>
-    `
-  };
+  // Sanitise helper for HTML output
+  const esc = s => s.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 
   // --- Send ---
   try {
     console.log(`[contact] Attempting to send email from <${email}>...`);
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[contact] Email sent successfully! Message ID: ${info.messageId}`);
+    const { data, error } = await resend.emails.send({
+      from: 'Artograph Contact <onboarding@resend.dev>',  // replace with your verified domain later
+      to:      ['deeptiarora1881@gmail.com'],
+      replyTo: email,
+      subject: `New Contact Inquiry from ${name}`,
+      text: [`Name:    ${name}`, `Email:   ${email}`, ``, `Message:`, message].join('\n'),
+      html: `
+        <div style="font-family:Georgia,serif;max-width:600px;margin:auto;padding:32px;background:#FDFBF7;border:1px solid #e5e0d8;border-radius:8px">
+          <h2 style="font-weight:400;color:#3d1f2b;margin-bottom:4px">New Contact Inquiry</h2>
+          <p style="font-size:12px;color:#888;letter-spacing:0.1em;text-transform:uppercase;margin-top:0">Artograph</p>
+          <hr style="border:none;border-top:1px solid #e5e0d8;margin:20px 0"/>
+          <p style="margin:0 0 6px"><strong>Name:</strong> ${esc(name)}</p>
+          <p style="margin:0 0 20px"><strong>Email:</strong> ${esc(email)}</p>
+          <p style="margin:0 0 6px"><strong>Message:</strong></p>
+          <div style="background:#f4ede3;padding:16px;border-radius:4px;white-space:pre-wrap;font-size:14px;color:#444">${esc(message)}</div>
+          <hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0"/>
+          <p style="font-size:11px;color:#aaa">Reply to this email to respond directly to the visitor.</p>
+        </div>
+      `
+    });
+
+    if (error) {
+      console.error(`[contact] Resend error:`, error);
+      return res.status(500).json({
+        success: false,
+        error: 'Unable to send your message right now. Please try again later.'
+      });
+    }
+
+    console.log(`[contact] Email sent successfully! ID: ${data.id}`);
     return res.json({ success: true, message: 'Your message has been sent successfully.' });
   } catch (err) {
     console.error(`[contact] Failed to send email:`, err);
