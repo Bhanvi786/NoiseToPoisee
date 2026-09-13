@@ -64,50 +64,18 @@ export default function Navbar() {
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between">
-          {/* Logo + Social Icons (left cluster) */}
-          <div className="flex items-center space-x-4">
-            <a
-              href="#home"
-              onClick={(e) => handleNavClick(e, '#home')}
-              className="flex items-center hover:opacity-90 transition-opacity duration-300"
-            >
-              <img
-                src="/Logo.png"
-                alt="Artograph Logo"
-                className="h-[clamp(2.5rem,5vw,4rem)] w-[clamp(2.5rem,5vw,4rem)] object-contain rounded-full border border-charcoal/20 shadow-sm"
-              />
-            </a>
-
-            {/* Social icons */}
-            <div className="hidden sm:flex items-center space-x-3">
-              {/* Instagram */}
-              <a
-                href="https://www.instagram.com/deeptiaroura"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="text-charcoal/50 hover:text-wine transition-colors duration-300"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                  <circle cx="12" cy="12" r="4" />
-                  <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none" />
-                </svg>
-              </a>
-              {/* Facebook */}
-              <a
-                href="https://www.facebook.com/deeptiaroura"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="text-charcoal/50 hover:text-wine transition-colors duration-300"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                </svg>
-              </a>
-            </div>
-          </div>
+          {/* Logo */}
+          <a
+            href="#home"
+            onClick={(e) => handleNavClick(e, '#home')}
+            className="flex items-center hover:opacity-90 transition-opacity duration-300"
+          >
+            <img
+              src="/Logo.png"
+              alt="Artograph Logo"
+              className="h-[clamp(2.5rem,5vw,4rem)] w-[clamp(2.5rem,5vw,4rem)] object-contain rounded-full border border-charcoal/20 shadow-sm"
+            />
+          </a>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-6 lg:space-x-10">
@@ -133,8 +101,39 @@ export default function Navbar() {
             })}
           </nav>
 
-          {/* Menu Button / Hamburger */}
-          <div className="flex items-center space-x-6">
+          {/* Right side: Social Icons + Menu Button */}
+          <div className="flex items-center space-x-4">
+            {/* Social icons */}
+            <div className="hidden sm:flex items-center space-x-3">
+              {/* Instagram */}
+              <a
+                href="https://www.instagram.com/deeptiaroura"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="text-charcoal/80 hover:text-wine transition-colors duration-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none" />
+                </svg>
+              </a>
+              {/* Facebook */}
+              <a
+                href="https://www.facebook.com/deeptiaroura"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="text-charcoal/80 hover:text-wine transition-colors duration-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </svg>
+              </a>
+            </div>
+
+            {/* Menu Button / Hamburger */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="flex items-center space-x-2 text-charcoal/80 hover:text-wine transition-colors duration-300 group"
