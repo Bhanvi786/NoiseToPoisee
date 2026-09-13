@@ -92,14 +92,25 @@ export default function AdminPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Check sessionStorage for pre-existing session
+  // Check backend for valid HttpOnly cookie session
   useEffect(() => {
-    const isLoggedIn = sessionStorage.getItem('admin_logged_in');
-    if (isLoggedIn === 'true') {
-      setIsAuthenticated(true);
-      fetchArtworks();
-      fetchStudentWorks();
-    }
+    const verifySession = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+        const res = await fetch(`${apiUrl}/api/admin/verify-session`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.isAuthenticated) {
+            setIsAuthenticated(true);
+            fetchArtworks();
+            fetchStudentWorks();
+          }
+        }
+      } catch (err) {
+        console.error('Session verification failed:', err);
+      }
+    };
+    verifySession();
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -113,15 +124,12 @@ export default function AdminPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ passcode }),
+        credentials: 'include'
       });
 
       const data = await res.json();
 
       if (res.ok && data.success) {
-        sessionStorage.setItem('admin_logged_in', 'true');
-        if (data.token) {
-          sessionStorage.setItem('admin_token', data.token);
-        }
         setIsAuthenticated(true);
         fetchArtworks();
         fetchStudentWorks();
@@ -139,12 +147,14 @@ export default function AdminPage() {
   const handleLogout = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      await fetch(`${apiUrl}/api/admin/logout`, { method: 'POST' });
+      await fetch(`${apiUrl}/api/admin/logout`, { 
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'X-Admin-Request': 'true' }
+      });
     } catch (err) {
       console.error('Logout error:', err);
     }
-    sessionStorage.removeItem('admin_logged_in');
-    sessionStorage.removeItem('admin_token');
     setIsAuthenticated(false);
     setPasscode('');
     setArtworks([]);
@@ -155,7 +165,7 @@ export default function AdminPage() {
     setLoadingArtworks(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      const res = await fetch(`${apiUrl}/api/artworks`);
+      const res = await fetch(`${apiUrl}/api/artworks`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setArtworks(data);
@@ -171,7 +181,7 @@ export default function AdminPage() {
     setLoadingArtworks(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      const res = await fetch(`${apiUrl}/api/student-works`);
+      const res = await fetch(`${apiUrl}/api/student-works`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         setStudentWorks(data);
@@ -232,15 +242,14 @@ export default function AdminPage() {
       const baseRoute = isExhibition ? 'artworks' : 'student-works';
       const endpoint = editId ? `${apiUrl}/api/${baseRoute}/${editId}` : `${apiUrl}/api/${baseRoute}`;
 
-      const token = sessionStorage.getItem('admin_token');
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      const headers: Record<string, string> = {
+        'X-Admin-Request': 'true'
+      };
 
       const res = await fetch(endpoint, {
         method,
         headers,
+        credentials: 'include',
         body: formData,
       });
 
@@ -285,15 +294,13 @@ export default function AdminPage() {
     const baseRoute = isExhibition ? 'artworks' : 'student-works';
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      const token = sessionStorage.getItem('admin_token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
       const res = await fetch(`${apiUrl}/api/${baseRoute}/${id}`, {
         method: 'DELETE',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Admin-Request': 'true'
+        },
+        credentials: 'include'
       });
 
       if (res.ok) {

@@ -99,15 +99,19 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
   
-  if (extname && mimetype) {
-    return cb(null, true);
-  } else {
-    cb(new Error('Error: Only images (jpeg, jpg, png, webp) are allowed!'));
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    // Also perform a basic extension check for defense in depth
+    const allowedExts = /jpeg|jpg|png|webp/i;
+    const extname = allowedExts.test(path.extname(file.originalname).toLowerCase());
+    
+    if (extname) {
+      return cb(null, true);
+    }
   }
+  
+  cb(new Error('Error: Only images (jpeg, jpg, png, webp) are allowed!'));
 };
 
 const upload = multer({ 
@@ -307,44 +311,81 @@ app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
   const { passcode } = req.body;
   
   if (!process.env.ADMIN_PASSCODE) {
-    return res.status(500).json({ success: false, error: 'Server configuration error: Admin passcode not set' });
+    console.error('Server configuration error: Admin passcode not set');
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
   
   if (passcode === process.env.ADMIN_PASSCODE) {
     const token = jwt.sign({ admin: true }, process.env.JWT_SECRET || 'fallback_secret_change_in_production', { expiresIn: '1d' });
-    // Return token in response body so frontend can use Authorization header
-    return res.json({ success: true, message: 'Authenticated successfully', token });
+    
+    // Set secure HttpOnly cookie
+    res.cookie('admin_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
+    return res.json({ success: true, message: 'Authenticated successfully' });
   }
-  return res.status(401).json({ success: false, error: 'Incorrect passcode' });
+  
+  // Generic error for brute force resistance
+  return res.status(401).json({ success: false, error: 'Invalid credentials' });
+});
+
+// Verify session endpoint for frontend
+app.get('/api/admin/verify-session', (req, res) => {
+  const token = req.cookies.admin_token;
+  if (!token) return res.status(401).json({ isAuthenticated: false });
+
+  try {
+    jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_change_in_production');
+    return res.json({ isAuthenticated: true });
+  } catch (err) {
+    return res.status(401).json({ isAuthenticated: false });
+  }
 });
 
 app.post('/api/admin/logout', (req, res) => {
-  // Token-based auth: nothing to clear server-side, frontend handles removal
+  res.clearCookie('admin_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
   return res.json({ success: true });
 });
 
-// Middleware for protected routes
+// Middleware for protected routes & CSRF protection
 const authenticateAdmin = (req, res, next) => {
-  // Accept token from Authorization header (preferred) or cookie (fallback)
-  let token = null;
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
-  } else {
-    token = req.cookies.admin_token;
+  // CSRF Protection: Require custom header for state-changing requests
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+    if (req.headers['x-admin-request'] !== 'true') {
+      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      return res.status(403).json({ error: 'Forbidden: CSRF validation failed' });
+    }
   }
+
+  // Session verification via HttpOnly cookie
+  const token = req.cookies.admin_token;
   
   if (!token) {
     if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    return res.status(401).json({ error: 'Unauthorized: No token provided' });
+    return res.status(401).json({ error: 'Unauthorized: No session found' });
   }
+  
   try {
     jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_change_in_production');
     next();
   } catch (err) {
     if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-    return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+    return res.status(401).json({ error: 'Unauthorized: Invalid or expired session' });
   }
+};
+
+// Simple HTML escaping to prevent XSS
+const sanitizeText = (str) => {
+  if (typeof str !== 'string') return str;
+  return str.replace(/[<>&"']/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
 };
 
 // Add new artwork (Upload image + save to MongoDB)
@@ -378,13 +419,13 @@ app.post('/api/artworks', authenticateAdmin, handleUpload, async (req, res) => {
     }
 
     const newArtwork = new Artwork({
-      title,
-      year,
-      medium,
-      dimensions,
+      title: sanitizeText(title),
+      year: sanitizeText(year),
+      medium: sanitizeText(medium),
+      dimensions: sanitizeText(dimensions),
       image: imageUrl,
-      aspect: aspect || 'aspect-square',
-      description,
+      aspect: sanitizeText(aspect) || 'aspect-square',
+      description: sanitizeText(description),
       isSold: isSold === 'true' || isSold === true
     });
 
@@ -409,13 +450,13 @@ app.put('/api/artworks/:id', authenticateAdmin, handleUpload, async (req, res) =
       return res.status(404).json({ error: 'Artwork not found' });
     }
 
-    // Update text fields
-    artwork.title = title || artwork.title;
-    artwork.year = year || artwork.year;
-    artwork.medium = medium || artwork.medium;
-    artwork.dimensions = dimensions || artwork.dimensions;
-    artwork.aspect = aspect || artwork.aspect;
-    artwork.description = description || artwork.description;
+    // Update text fields with sanitization
+    artwork.title = sanitizeText(title) || artwork.title;
+    artwork.year = sanitizeText(year) || artwork.year;
+    artwork.medium = sanitizeText(medium) || artwork.medium;
+    artwork.dimensions = sanitizeText(dimensions) || artwork.dimensions;
+    artwork.aspect = sanitizeText(aspect) || artwork.aspect;
+    artwork.description = sanitizeText(description) || artwork.description;
     if (isSold !== undefined) {
       artwork.isSold = isSold === 'true' || isSold === true;
     }
@@ -525,13 +566,13 @@ app.post('/api/student-works', authenticateAdmin, handleUpload, async (req, res)
     }
 
     const newWork = new StudentWork({
-      title,
-      artist,
-      mentorshipYear,
-      medium,
-      dimensions,
+      title: sanitizeText(title),
+      artist: sanitizeText(artist),
+      mentorshipYear: sanitizeText(mentorshipYear),
+      medium: sanitizeText(medium),
+      dimensions: sanitizeText(dimensions),
       image: imageUrl,
-      concept
+      concept: sanitizeText(concept)
     });
 
     await newWork.save();
@@ -555,13 +596,13 @@ app.put('/api/student-works/:id', authenticateAdmin, handleUpload, async (req, r
       return res.status(404).json({ error: 'Student work not found' });
     }
 
-    // Update text fields
-    work.title = title || work.title;
-    work.artist = artist || work.artist;
-    work.mentorshipYear = mentorshipYear || work.mentorshipYear;
-    work.medium = medium || work.medium;
-    work.dimensions = dimensions || work.dimensions;
-    work.concept = concept || work.concept;
+    // Update text fields with sanitization
+    work.title = sanitizeText(title) || work.title;
+    work.artist = sanitizeText(artist) || work.artist;
+    work.mentorshipYear = sanitizeText(mentorshipYear) || work.mentorshipYear;
+    work.medium = sanitizeText(medium) || work.medium;
+    work.dimensions = sanitizeText(dimensions) || work.dimensions;
+    work.concept = sanitizeText(concept) || work.concept;
 
     // If new image is uploaded
     if (req.file) {
