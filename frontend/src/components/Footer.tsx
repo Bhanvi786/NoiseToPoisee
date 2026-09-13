@@ -29,7 +29,7 @@ export default function Footer() {
             Artograph
           </a>
           <p className="text-sm text-white/50 leading-relaxed font-sans font-light max-w-sm">
-            Exploring the profound silence that resides beneath modern noise. A gallery of classical and contemporary oil paintings curated for the modern collector.
+            Where emotion meets craftsmanship. Artograph is the fine art practice of Deepti Aroura — original oil paintings that transform feeling into form, and chaos into quiet beauty.
           </p>
           <div className="font-signature text-3xl text-wine">
             Deepti Aroura
