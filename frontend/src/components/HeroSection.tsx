@@ -407,22 +407,20 @@ export default function HeroSection() {
               Translating the world&apos;s noise into moments of absolute poise.
             </motion.p>
 
-            {/* Primary CTA */}
-            <motion.div variants={fadeRevealVariants} className="pt-1 sm:pt-2">
-              <a
-                href="#gallery"
-                className="inline-flex items-center space-x-2 sm:space-x-4 group text-[8px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.25em] font-sans font-semibold text-charcoal border-b border-charcoal/20 pb-2 sm:pb-3 hover:border-wine hover:text-wine transition-all duration-500 ease-out"
-              >
-                <span>Explore Collection</span>
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  className="text-wine group-hover:translate-x-2 transition-transform duration-300"
-                >
-                  &mdash;&rarr;
-                </motion.span>
-              </a>
-            </motion.div>
+            {/* Art Quote */}
+            <motion.blockquote
+              variants={fadeRevealVariants}
+              className="pt-1 sm:pt-2 border-l-2 border-wine/40 pl-3 sm:pl-4"
+            >
+              <p className="text-[9px] sm:text-[11px] md:text-xs text-charcoal/50 font-sans font-light italic leading-relaxed tracking-wide">
+                &ldquo;Every canvas is a journey — from the chaos of emotion to the clarity of form.&rdquo;
+              </p>
+              <span className="mt-1 block text-[8px] sm:text-[10px] uppercase tracking-[0.2em] text-wine/60 font-sans font-medium">
+                — Deepti Aroura
+              </span>
+            </motion.blockquote>
+
+
           </motion.div>
 
           {/* RIGHT COLUMN: The Living Gallery Parallax Stack */}
