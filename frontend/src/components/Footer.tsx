@@ -67,8 +67,8 @@ export default function Footer() {
               Studio Representation
             </h4>
             <p className="text-xs text-white/40 leading-relaxed font-sans font-light">
-              Press queries: press@noisetopoise.com<br />
-              Gallery partnerships: partners@noisetopoise.com
+              Press queries: press@artograph.com<br />
+              Gallery partnerships: partners@artograph.com
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function Footer() {
       {/* Under Footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 mt-10 sm:mt-12 md:mt-16 pt-6 sm:pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-[10px] sm:text-xs tracking-widest text-white/30 uppercase font-sans gap-3 sm:gap-0">
         <div className="mb-4 sm:mb-0">
-          &copy; 2026 noiseToPoise. All rights reserved.
+          &copy; 2026 Artograph. All rights reserved.
         </div>
         <div className="flex space-x-2">
           <span>Curated with Poise. Designed with Intention.</span>

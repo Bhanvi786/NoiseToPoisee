@@ -48,7 +48,7 @@ export default function SplashScreen() {
             {/* Logo */}
             <img
               src="/Logo.png"
-              alt="noiseToPoise Logo"
+              alt="Artograph Logo"
               className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-full border border-charcoal/10 shadow-sm mb-10"
             />
             

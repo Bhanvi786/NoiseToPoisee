@@ -72,7 +72,7 @@ export default function Navbar() {
           >
             <img
               src="/Logo.png"
-              alt="noiseToPoise Logo"
+              alt="Artograph Logo"
               className="h-[clamp(2.5rem,5vw,4rem)] w-[clamp(2.5rem,5vw,4rem)] object-contain rounded-full border border-charcoal/20 shadow-sm"
             />
           </a>
@@ -188,7 +188,7 @@ export default function Navbar() {
 
             {/* Footer inside mobile menu */}
             <div className="absolute bottom-10 left-8 sm:left-16 right-8 sm:right-16 flex justify-between items-center text-xs tracking-widest text-charcoal/40 uppercase">
-              <div>© 2026 noiseToPoise</div>
+              <div>© 2026 Artograph</div>
               <div className="flex space-x-6">
                 <a href="#instagram" className="hover:text-wine transition-colors">Instagram</a>
                 <a href="#facebook" className="hover:text-wine transition-colors">Facebook</a>

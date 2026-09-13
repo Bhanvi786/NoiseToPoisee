@@ -9,6 +9,7 @@ const cloudinary = require('cloudinary').v2;
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
+const nodemailer = require('nodemailer');
 
 const Artwork = require('./models/Artwork');
 const StudentWork = require('./models/StudentWork');
@@ -58,7 +59,7 @@ if (!fs.existsSync(uploadsDir)) {
 app.use('/uploads', express.Router().use(express.static(uploadsDir)));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/noisetopoise')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/artograph')
   .then(async () => {
     console.log('Successfully connected to MongoDB');
     await seedArtworksIfEmpty();
@@ -276,6 +277,15 @@ const loginLimiter = rateLimit({
   message: { success: false, error: 'Too many login attempts, please try again later' }
 });
 
+// Separate rate limiter for the public contact form
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,                   // 5 submissions per IP per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many messages sent. Please try again in 15 minutes.' }
+});
+
 // Passcode validation check
 app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
   const { passcode } = req.body;
@@ -336,7 +346,7 @@ app.post('/api/artworks', authenticateAdmin, handleUpload, async (req, res) => {
       // Upload to Cloudinary
       try {
         const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'noisetopoise_drawings'
+          folder: 'artograph_drawings'
         });
         imageUrl = result.secure_url;
         // Delete local temporary file
@@ -407,7 +417,7 @@ app.put('/api/artworks/:id', authenticateAdmin, handleUpload, async (req, res) =
       if (isCloudinaryConfigured) {
         try {
           const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'noisetopoise_drawings'
+            folder: 'artograph_drawings'
           });
           imageUrl = result.secure_url;
           fs.unlinkSync(req.file.path);
@@ -485,7 +495,7 @@ app.post('/api/student-works', authenticateAdmin, handleUpload, async (req, res)
     if (isCloudinaryConfigured) {
       try {
         const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'noisetopoise_drawings'
+          folder: 'artograph_drawings'
         });
         imageUrl = result.secure_url;
         fs.unlinkSync(req.file.path);
@@ -549,7 +559,7 @@ app.put('/api/student-works/:id', authenticateAdmin, handleUpload, async (req, r
       if (isCloudinaryConfigured) {
         try {
           const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'noisetopoise_drawings'
+            folder: 'artograph_drawings'
           });
           imageUrl = result.secure_url;
           fs.unlinkSync(req.file.path);
@@ -597,6 +607,103 @@ app.delete('/api/student-works/:id', authenticateAdmin, async (req, res) => {
   }
 });
 
+
+// -------------------------------------------------------------
+// Contact Form Endpoint
+// -------------------------------------------------------------
+
+// Email format validator (RFC 5321 practical limit)
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+app.post('/api/contact', contactLimiter, async (req, res) => {
+  // Reject non-object or missing bodies early
+  if (!req.body || typeof req.body !== 'object') {
+    return res.status(400).json({ success: false, error: 'Invalid request body.' });
+  }
+
+  // Extract and trim fields — never trust raw user input
+  const name    = typeof req.body.name    === 'string' ? req.body.name.trim()    : '';
+  const email   = typeof req.body.email   === 'string' ? req.body.email.trim()   : '';
+  const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
+
+  // --- Server-side validation ---
+  const errors = [];
+
+  if (!name)                errors.push('Name is required.');
+  else if (name.length > 100) errors.push('Name must be 100 characters or fewer.');
+
+  if (!email)                         errors.push('Email is required.');
+  else if (email.length > 254)        errors.push('Email address is too long.');
+  else if (!EMAIL_REGEX.test(email))  errors.push('Please provide a valid email address.');
+
+  if (!message)                    errors.push('Message is required.');
+  else if (message.length > 5000)  errors.push('Message must be 5,000 characters or fewer.');
+
+  if (errors.length > 0) {
+    return res.status(400).json({ success: false, error: errors[0] });
+  }
+
+  // --- Gmail credentials check ---
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error('[contact] Gmail credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
+    return res.status(500).json({
+      success: false,
+      error: 'Unable to send your message right now. Please try again later.'
+    });
+  }
+
+  // --- Build Nodemailer transporter (created per-request so env changes are picked up) ---
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD
+    }
+  });
+
+  // --- Compose email ---
+  // Only the validated, trimmed visitor email is placed in Reply-To — never blindly injected into headers
+  const mailOptions = {
+    from: `"Artograph Contact" <${process.env.GMAIL_USER}>`,
+    to:      'deeptiarora1881@gmail.com',
+    replyTo: email,
+    subject: `New Contact Inquiry from ${name}`,
+    text: [
+      `Name:    ${name}`,
+      `Email:   ${email}`,
+      ``,
+      `Message:`,
+      message
+    ].join('\n'),
+    html: `
+      <div style="font-family:Georgia,serif;max-width:600px;margin:auto;padding:32px;background:#FDFBF7;border:1px solid #e5e0d8;border-radius:8px">
+        <h2 style="font-weight:400;color:#3d1f2b;margin-bottom:4px">New Contact Inquiry</h2>
+        <p style="font-size:12px;color:#888;letter-spacing:0.1em;text-transform:uppercase;margin-top:0">Artograph</p>
+        <hr style="border:none;border-top:1px solid #e5e0d8;margin:20px 0"/>
+        <p style="margin:0 0 6px"><strong>Name:</strong> ${name.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</p>
+        <p style="margin:0 0 20px"><strong>Email:</strong> ${email.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</p>
+        <p style="margin:0 0 6px"><strong>Message:</strong></p>
+        <div style="background:#f4ede3;padding:16px;border-radius:4px;white-space:pre-wrap;font-size:14px;color:#444">${message.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</div>
+        <hr style="border:none;border-top:1px solid #e5e0d8;margin:24px 0"/>
+        <p style="font-size:11px;color:#aaa">Reply to this email to respond directly to the visitor.</p>
+      </div>
+    `
+  };
+
+  // --- Send ---
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`[contact] Email sent successfully from <${email}> — name: "${name}"`);
+    return res.json({ success: true, message: 'Your message has been sent successfully.' });
+  } catch (err) {
+    // Log the error type/code server-side without revealing internals to the client
+    console.error(`[contact] Failed to send email — code: ${err.code || 'UNKNOWN'}, message: ${err.message}`);
+    return res.status(500).json({
+      success: false,
+      error: 'Unable to send your message right now. Please try again later.'
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Backend server is running on http://localhost:${PORT}`);

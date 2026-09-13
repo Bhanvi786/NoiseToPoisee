@@ -6,15 +6,46 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function ContactSection() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.name && formData.email && formData.message) {
-      setIsSubmitted(true);
-      // Simulate API submit
-      setTimeout(() => {
+
+    // Prevent duplicate submissions while a request is in flight
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const response = await fetch(`${apiUrl}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Success — show confirmation screen, then clear the form
+        setIsSubmitted(true);
         setFormData({ name: '', email: '', message: '' });
-      }, 2000);
+      } else {
+        // Show the server's validation error (e.g. "Email is required.")
+        // or a generic fallback — never expose internal details
+        setError(data.error || 'Unable to send your message right now. Please try again later.');
+      }
+    } catch {
+      // Network failure or unexpected error — generic message only
+      setError('Unable to reach the server. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -103,9 +134,10 @@ export default function ContactSection() {
                         type="text"
                         id="name"
                         required
+                        disabled={isLoading}
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="bg-transparent border-b border-wine/10 hover:border-wine/30 focus:border-wine outline-none py-2 text-charcoal font-light transition-colors duration-300"
+                        className="bg-transparent border-b border-wine/10 hover:border-wine/30 focus:border-wine outline-none py-2 text-charcoal font-light transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="Aarav Mehta"
                       />
                     </div>
@@ -119,9 +151,10 @@ export default function ContactSection() {
                         type="email"
                         id="email"
                         required
+                        disabled={isLoading}
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="bg-transparent border-b border-wine/10 hover:border-wine/30 focus:border-wine outline-none py-2 text-charcoal font-light transition-colors duration-300"
+                        className="bg-transparent border-b border-wine/10 hover:border-wine/30 focus:border-wine outline-none py-2 text-charcoal font-light transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder="aarav@example.com"
                       />
                     </div>
@@ -136,20 +169,41 @@ export default function ContactSection() {
                       id="message"
                       rows={5}
                       required
+                      disabled={isLoading}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="bg-transparent border-b border-wine/10 hover:border-wine/30 focus:border-wine outline-none py-2 text-charcoal font-light transition-colors duration-300 resize-none"
+                      className="bg-transparent border-b border-wine/10 hover:border-wine/30 focus:border-wine outline-none py-2 text-charcoal font-light transition-colors duration-300 resize-none disabled:opacity-50 disabled:cursor-not-allowed"
                       placeholder="Share details of your inquiry..."
                     />
                   </div>
+
+                  {/* Inline error message */}
+                  <AnimatePresence>
+                    {error && (
+                      <motion.p
+                        key="error-msg"
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -6 }}
+                        transition={{ duration: 0.3 }}
+                        className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3 font-sans font-light"
+                        role="alert"
+                        aria-live="polite"
+                      >
+                        {error}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
 
                   {/* Submit Button */}
                   <div className="pt-4">
                     <button
                       type="submit"
-                      className="w-full bg-wine hover:bg-charcoal text-[#F7F2EB] uppercase tracking-[0.2em] text-xs py-4 font-medium rounded-lg transition-colors duration-300"
+                      id="contact-submit-btn"
+                      disabled={isLoading}
+                      className="w-full bg-wine hover:bg-charcoal text-[#F7F2EB] uppercase tracking-[0.2em] text-xs py-4 font-medium rounded-lg transition-colors duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      Send Message
+                      {isLoading ? 'Sending\u2026' : 'Send Message'}
                     </button>
                   </div>
                 </motion.form>
@@ -169,7 +223,7 @@ export default function ContactSection() {
                     Inquiry Received
                   </h3>
                   <p className="text-sm text-charcoal/60 max-w-sm mx-auto font-light leading-relaxed">
-                    Thank you, {formData.name || 'friend'}. Deepti or her gallery representative will contact you shortly to discuss your request.
+                    Thank you. Deepti or her gallery representative will contact you shortly to discuss your request.
                   </p>
                   <button
                     onClick={() => setIsSubmitted(false)}
