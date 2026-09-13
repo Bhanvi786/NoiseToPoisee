@@ -653,19 +653,21 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
   }
 
   // --- Build Nodemailer transporter ---
+  // Port 465 (SMTPS) is blocked by Render. Use port 587 (STARTTLS) instead.
+  // family: 4 forces IPv4 to avoid ENETUNREACH errors caused by Render's IPv6 routing to Google.
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false,           // false = STARTTLS (upgraded after connect), not SSL-on-connect
+    family: 4,               // force IPv4 — Render cannot reach Google over IPv6
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_APP_PASSWORD
     },
-    // Force IPv4 if Render has IPv6 routing issues, and add timeouts so it doesn't hang forever
-    tls: { rejectUnauthorized: false },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    socketTimeout: 15000
+    tls: { rejectUnauthorized: true },
+    connectionTimeout: 15000, // 15 seconds
+    greetingTimeout: 15000,
+    socketTimeout: 20000
   });
 
   // --- Compose email ---
