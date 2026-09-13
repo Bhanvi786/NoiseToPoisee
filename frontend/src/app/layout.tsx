@@ -27,7 +27,7 @@ const signature = Alex_Brush({
 });
 
 export const metadata: Metadata = {
-  title: "noiseToPoise | Deepti Aroura - Artist Portfolio",
+  title: "Deepti Aroura | Artograph",
   description: "Explore the premium, editorial-style portfolio of artist Deepti Aroura. Experience modern luxury, museum-inspired contemporary art, and art collections.",
   keywords: ["Deepti Aroura", "noiseToPoise", "Artist", "Oil Painting", "Art", "Contemporary Art Portfolio"],
   authors: [{ name: "Deepti Aroura" }],
