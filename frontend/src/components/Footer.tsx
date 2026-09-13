@@ -57,8 +57,8 @@ export default function Footer() {
               Social Media
             </h4>
             <div className="flex space-x-6 font-sans text-sm font-light text-white/60">
-              <a href="#instagram" className="hover:text-white transition-colors">Instagram</a>
-              <a href="#facebook" className="hover:text-white transition-colors">Facebook</a>
+              <a href="https://www.instagram.com/deeptiaroura" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
+              <a href="https://www.facebook.com/deeptiaroura" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Facebook</a>
             </div>
           </div>
 
