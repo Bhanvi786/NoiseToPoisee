@@ -465,7 +465,7 @@ export default function HeroSection() {
             </div>
 
             {/* Main stack container spanning large viewport coordinates (Desktop Only >= 768px) */}
-            <div className="hidden md:flex relative w-[800px] h-[800px] justify-center items-center md:translate-x-0 md:translate-y-8 md:scale-[0.7] lg:scale-100 origin-center">
+            <div className="hidden md:flex relative w-[800px] h-[800px] justify-center items-center md:translate-x-8 md:translate-y-16 md:scale-[0.7] lg:translate-x-8 lg:translate-y-16 lg:scale-100 origin-center">
 
               {/* STACK LAYERS */}
               <div className="absolute inset-0 w-full h-full">
