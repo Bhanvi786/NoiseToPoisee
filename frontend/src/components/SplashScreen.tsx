@@ -13,6 +13,12 @@ export default function SplashScreen() {
       document.body.style.overflow = '';
     }
 
+    // Wake up the backend immediately when splash screen mounts
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      fetch(`${apiUrl}/api/artworks`, { method: 'GET', keepalive: true }).catch(() => {});
+    } catch (err) {}
+
     const timer = setTimeout(() => {
       setIsVisible(false);
     }, 3000);

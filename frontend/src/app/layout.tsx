@@ -45,7 +45,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col paper-texture text-charcoal relative">
         <SplashScreen />
-        <ServerWakeup />
         <div className="grain-overlay" />
         <main className="flex-grow flex flex-col">{children}</main>
       </body>
