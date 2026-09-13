@@ -334,19 +334,19 @@ export default function MasonryGallery() {
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 30, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-              className="relative bg-[#F7F2EC] max-w-5xl w-full rounded-lg overflow-hidden shadow-2xl z-10 grid grid-cols-1 md:grid-cols-12 max-h-[90vh] md:max-h-[85vh] border border-wine/10"
+              className="relative bg-[#F7F2EC] max-w-5xl w-full rounded-lg overflow-y-auto overflow-x-hidden md:overflow-hidden shadow-2xl z-10 flex flex-col md:grid md:grid-cols-12 max-h-[90vh] md:max-h-[85vh] border border-wine/10"
             >
               {/* Close Button */}
               <button
                 onClick={() => setSelectedArtwork(null)}
-                className="absolute right-4 top-4 z-20 bg-charcoal text-[#F7F2EC] hover:bg-wine p-2 rounded-full transition-colors duration-300"
+                className="absolute right-4 top-4 z-20 bg-charcoal/80 text-[#F7F2EC] hover:bg-wine p-2 rounded-full transition-colors duration-300 backdrop-blur-sm"
                 aria-label="Close details"
               >
                 <X size={20} />
               </button>
 
               {/* Left Side: Artwork Image */}
-              <div className="md:col-span-7 relative h-[300px] md:h-[85vh] bg-charcoal/95 flex items-center justify-center">
+              <div className="md:col-span-7 relative shrink-0 h-[350px] md:h-[85vh] bg-charcoal/95 flex items-center justify-center">
                 <div className="relative w-full h-full">
                   <Image
                     src={getImageUrl(selectedArtwork.image)}
@@ -359,7 +359,7 @@ export default function MasonryGallery() {
               </div>
 
               {/* Right Side: Artwork Info */}
-              <div className="md:col-span-5 p-8 sm:p-12 flex flex-col justify-between space-y-8 overflow-y-auto max-h-[60vh] md:max-h-[85vh] bg-[#F7F2EC] paper-texture">
+              <div className="md:col-span-5 p-6 sm:p-12 flex flex-col justify-between space-y-6 md:space-y-8 bg-[#F7F2EC] paper-texture md:overflow-y-auto md:max-h-[85vh]">
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <span className="text-xs uppercase tracking-[0.25em] text-wine font-medium font-sans">
