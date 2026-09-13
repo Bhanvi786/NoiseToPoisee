@@ -55,8 +55,8 @@ export default function AboutSection() {
                 className="w-full h-full relative"
               >
                 <Image
-                  src="/artwork/8.jpeg"
-                  alt="Deepti Aroura in studio"
+                  src="/artwork/deepti.jpeg"
+                  alt="Deepti Aroura in her studio"
                   fill
                   sizes="(max-width: 1024px) 100vw, 40vw"
                   className="object-cover transition-transform duration-[2000ms] ease-out group-hover:scale-105"
