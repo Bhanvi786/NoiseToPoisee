@@ -4,7 +4,7 @@ const cspHeader = `
     default-src 'self';
     script-src 'self' 'unsafe-eval' 'unsafe-inline';
     style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: res.cloudinary.com localhost:* http://localhost:* 127.0.0.1:* http://127.0.0.1:*;
+    img-src 'self' blob: data: res.cloudinary.com localhost:* http://localhost:* 127.0.0.1:* http://127.0.0.1:* https://artograph-backend.onrender.com;
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
@@ -60,8 +60,19 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+        port: '5001',
+        pathname: '/**',
+      },
+      {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'artograph-backend.onrender.com',
         pathname: '/**',
       }
     ],
