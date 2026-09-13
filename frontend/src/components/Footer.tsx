@@ -26,7 +26,7 @@ export default function Footer() {
             onClick={(e) => handleScrollTo(e, '#home')}
             className="font-serif text-3xl font-light tracking-wide hover:text-wine transition-colors block"
           >
-            noise<span className="text-wine font-medium">To</span>poise
+            Artograph
           </a>
           <p className="text-sm text-white/50 leading-relaxed font-sans font-light max-w-sm">
             Exploring the profound silence that resides beneath modern noise. A gallery of classical and contemporary oil paintings curated for the modern collector.
@@ -62,15 +62,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="space-y-2 pt-2 border-t border-white/5">
-            <h4 className="text-xs uppercase tracking-widest text-wine font-sans font-medium">
-              Studio Representation
-            </h4>
-            <p className="text-xs text-white/40 leading-relaxed font-sans font-light">
-              Press queries: press@artograph.com<br />
-              Gallery partnerships: partners@artograph.com
-            </p>
-          </div>
+
         </div>
 
       </div>
@@ -80,9 +72,7 @@ export default function Footer() {
         <div className="mb-4 sm:mb-0">
           &copy; 2026 Artograph. All rights reserved.
         </div>
-        <div className="flex space-x-2">
-          <span>Curated with Poise. Designed with Intention.</span>
-        </div>
+
       </div>
     </footer>
   );
