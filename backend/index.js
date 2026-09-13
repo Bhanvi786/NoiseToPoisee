@@ -38,7 +38,8 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(express.json());
+// Cap JSON body at 10 KB to prevent oversized-payload abuse
+app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
 
 // Security Headers Middleware
@@ -277,13 +278,28 @@ const loginLimiter = rateLimit({
   message: { success: false, error: 'Too many login attempts, please try again later' }
 });
 
-// Separate rate limiter for the public contact form
-const contactLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,                   // 5 submissions per IP per 15 minutes
+// Hourly rate limiter: max 5 contact submissions per IP per hour
+const contactLimiterHourly = rateLimit({
+  windowMs: 60 * 60 * 1000,   // 1 hour
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, error: 'Too many messages sent. Please try again in 15 minutes.' }
+  handler: (req, res) => {
+    console.warn(`[contact][rate-limit] Hourly limit exceeded — IP: ${req.ip}`);
+    res.status(429).json({ success: false, error: 'Too many messages sent. Please try again in an hour.' });
+  }
+});
+
+// Daily rate limiter: max 20 contact submissions per IP per 24 hours
+const contactLimiterDaily = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.warn(`[contact][rate-limit] Daily limit exceeded — IP: ${req.ip}`);
+    res.status(429).json({ success: false, error: 'Daily submission limit reached. Please try again tomorrow.' });
+  }
 });
 
 // Passcode validation check
@@ -612,16 +628,28 @@ app.delete('/api/student-works/:id', authenticateAdmin, async (req, res) => {
 // Contact Form Endpoint
 // -------------------------------------------------------------
 
-// Email format validator (RFC 5321 practical limit)
+// Email format validator — RFC 5321 / practical subset
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-app.post('/api/contact', contactLimiter, async (req, res) => {
-  // Reject non-object or missing bodies early
+// Rejects strings containing ASCII control characters (except normal whitespace)
+const CONTROL_CHAR_REGEX = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/;
+
+app.post('/api/contact', contactLimiterHourly, contactLimiterDaily, async (req, res) => {
+  // --- Reject non-object or missing bodies early ---
   if (!req.body || typeof req.body !== 'object') {
+    console.warn(`[contact][validation] Malformed body — IP: ${req.ip}`);
     return res.status(400).json({ success: false, error: 'Invalid request body.' });
   }
 
-  // Extract and trim fields — never trust raw user input
+  // --- Honeypot check (must be empty; bots fill it, humans don't see it) ---
+  const honeypot = typeof req.body.website === 'string' ? req.body.website : '';
+  if (honeypot !== '') {
+    // Silently reject — return 200 so bots think it succeeded
+    console.warn(`[contact][honeypot] Bot submission blocked — IP: ${req.ip}`);
+    return res.json({ success: true, message: 'Your message has been sent successfully.' });
+  }
+
+  // --- Extract and trim fields — never trust raw user input ---
   const name    = typeof req.body.name    === 'string' ? req.body.name.trim()    : '';
   const email   = typeof req.body.email   === 'string' ? req.body.email.trim()   : '';
   const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
@@ -629,17 +657,23 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
   // --- Server-side validation ---
   const errors = [];
 
-  if (!name)                errors.push('Name is required.');
-  else if (name.length > 100) errors.push('Name must be 100 characters or fewer.');
+  if (!name)                          errors.push('Name is required.');
+  else if (name.length < 2)           errors.push('Name must be at least 2 characters.');
+  else if (name.length > 100)         errors.push('Name must be 100 characters or fewer.');
+  else if (CONTROL_CHAR_REGEX.test(name)) errors.push('Name contains invalid characters.');
 
   if (!email)                         errors.push('Email is required.');
   else if (email.length > 254)        errors.push('Email address is too long.');
   else if (!EMAIL_REGEX.test(email))  errors.push('Please provide a valid email address.');
+  else if (CONTROL_CHAR_REGEX.test(email)) errors.push('Email contains invalid characters.');
 
-  if (!message)                    errors.push('Message is required.');
-  else if (message.length > 5000)  errors.push('Message must be 5,000 characters or fewer.');
+  if (!message)                       errors.push('Message is required.');
+  else if (message.length < 10)       errors.push('Message must be at least 10 characters.');
+  else if (message.length > 5000)     errors.push('Message must be 5,000 characters or fewer.');
+  else if (CONTROL_CHAR_REGEX.test(message)) errors.push('Message contains invalid characters.');
 
   if (errors.length > 0) {
+    console.warn(`[contact][validation] Rejected — IP: ${req.ip} — ${errors[0]}`);
     return res.status(400).json({ success: false, error: errors[0] });
   }
 
@@ -648,25 +682,29 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
     console.error('[contact] Resend API key not configured. Set RESEND_API_KEY.');
     return res.status(500).json({
       success: false,
-      error: 'Unable to send your message right now. Please try again later.'
+      error: 'Something went wrong. Please try again.'
     });
   }
 
-  // --- Build Resend client (HTTPS API — works on all Render tiers, no SMTP needed) ---
+  // --- Build Resend client (HTTPS — no SMTP, works on all Render tiers) ---
   const resend = new Resend(process.env.RESEND_API_KEY);
 
-  // Sanitise helper for HTML output
+  // HTML escape helper — prevents XSS/injection in email body
   const esc = s => s.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
 
   // --- Send ---
   try {
-    console.log(`[contact] Attempting to send email from <${email}>...`);
+    console.log(`[contact] Sending inquiry from IP ${req.ip} ...`);
     const { data, error } = await resend.emails.send({
+      // From: always our verified domain — visitor cannot control this
       from: 'Artograph Contact <noreply@artographbydeepti.com>',
       to:      ['deeptiarora1881@gmail.com'],
+      // Reply-To: visitor's validated email so Deepti can reply directly
       replyTo: email,
-      subject: `New Contact Inquiry from ${name}`,
+      subject: `New Inquiry from ${name}`,
+      // Plain-text fallback
       text: [`Name:    ${name}`, `Email:   ${email}`, ``, `Message:`, message].join('\n'),
+      // HTML body — all user content is HTML-escaped before insertion
       html: `
         <div style="font-family:Georgia,serif;max-width:600px;margin:auto;padding:32px;background:#FDFBF7;border:1px solid #e5e0d8;border-radius:8px">
           <h2 style="font-weight:400;color:#3d1f2b;margin-bottom:4px">New Contact Inquiry</h2>
@@ -683,20 +721,22 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
     });
 
     if (error) {
-      console.error(`[contact] Resend error:`, error);
+      // Log the Resend error internally, never expose it to the client
+      console.error(`[contact] Resend API error:`, error);
       return res.status(500).json({
         success: false,
-        error: 'Unable to send your message right now. Please try again later.'
+        error: 'Something went wrong. Please try again.'
       });
     }
 
-    console.log(`[contact] Email sent successfully! ID: ${data.id}`);
+    console.log(`[contact] Email sent successfully — ID: ${data.id}`);
     return res.json({ success: true, message: 'Your message has been sent successfully.' });
   } catch (err) {
-    console.error(`[contact] Failed to send email:`, err);
+    // Generic catch — never leak stack traces or internal details
+    console.error(`[contact] Unexpected error:`, err.message);
     return res.status(500).json({
       success: false,
-      error: 'Unable to send your message right now. Please try again later.'
+      error: 'Something went wrong. Please try again.'
     });
   }
 });

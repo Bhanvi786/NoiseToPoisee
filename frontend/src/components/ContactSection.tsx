@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  // Honeypot: kept blank by real users; bots tend to fill every field
+  const [honeypot, setHoneypot] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,6 +17,14 @@ export default function ContactSection() {
     // Prevent duplicate submissions while a request is in flight
     if (isLoading) return;
 
+    // Frontend validation (authoritative validation is server-side)
+    const trimmedName    = formData.name.trim();
+    const trimmedEmail   = formData.email.trim();
+    const trimmedMessage = formData.message.trim();
+
+    if (trimmedName.length < 2)    { setError('Name must be at least 2 characters.'); return; }
+    if (trimmedMessage.length < 10) { setError('Message must be at least 10 characters.'); return; }
+
     setIsLoading(true);
     setError(null);
 
@@ -24,9 +34,10 @@ export default function ContactSection() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
+          name:    formData.name,
+          email:   formData.email,
           message: formData.message,
+          website: honeypot, // honeypot field — always empty for real users
         }),
       });
 
@@ -36,6 +47,7 @@ export default function ContactSection() {
         // Success — show confirmation screen, then clear the form
         setIsSubmitted(true);
         setFormData({ name: '', email: '', message: '' });
+        setHoneypot('');
       } else {
         // Show the server's validation error (e.g. "Email is required.")
         // or a generic fallback — never expose internal details
@@ -159,6 +171,27 @@ export default function ContactSection() {
                       />
                     </div>
                   </div>
+
+                  {/* Honeypot anti-bot field — hidden from real users via CSS, not display:none */}
+                  <input
+                    type="text"
+                    name="website"
+                    id="website"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      left: '-9999px',
+                      width: '1px',
+                      height: '1px',
+                      overflow: 'hidden',
+                      opacity: 0,
+                      pointerEvents: 'none',
+                    }}
+                  />
 
                   {/* Message */}
                   <div className="space-y-2 flex flex-col">
