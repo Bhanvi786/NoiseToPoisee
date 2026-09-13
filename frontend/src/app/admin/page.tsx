@@ -92,19 +92,27 @@ export default function AdminPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Check backend for valid HttpOnly cookie session
+  // Check backend for valid session token
   useEffect(() => {
     const verifySession = async () => {
+      const token = sessionStorage.getItem('admin_token');
+      if (!token) return;
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-        const res = await fetch(`${apiUrl}/api/admin/verify-session`, { credentials: 'include' });
+        const res = await fetch(`${apiUrl}/api/admin/verify-session`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.isAuthenticated) {
             setIsAuthenticated(true);
             fetchArtworks();
             fetchStudentWorks();
+          } else {
+            sessionStorage.removeItem('admin_token');
           }
+        } else {
+          sessionStorage.removeItem('admin_token');
         }
       } catch (err) {
         console.error('Session verification failed:', err);
@@ -112,6 +120,11 @@ export default function AdminPage() {
     };
     verifySession();
   }, []);
+
+  const getAuthHeaders = (): Record<string, string> => {
+    const token = sessionStorage.getItem('admin_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,6 +143,9 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        if (data.token) {
+          sessionStorage.setItem('admin_token', data.token);
+        }
         setIsAuthenticated(true);
         fetchArtworks();
         fetchStudentWorks();
@@ -149,12 +165,13 @@ export default function AdminPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
       await fetch(`${apiUrl}/api/admin/logout`, { 
         method: 'POST',
-        credentials: 'include',
-        headers: { 'X-Admin-Request': 'true' }
+        headers: { ...getAuthHeaders(), 'X-Admin-Request': 'true' },
+        credentials: 'include'
       });
     } catch (err) {
       console.error('Logout error:', err);
     }
+    sessionStorage.removeItem('admin_token');
     setIsAuthenticated(false);
     setPasscode('');
     setArtworks([]);
@@ -165,7 +182,10 @@ export default function AdminPage() {
     setLoadingArtworks(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      const res = await fetch(`${apiUrl}/api/artworks`, { credentials: 'include' });
+      const res = await fetch(`${apiUrl}/api/artworks`, {
+        headers: { ...getAuthHeaders() },
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setArtworks(data);
@@ -181,7 +201,10 @@ export default function AdminPage() {
     setLoadingArtworks(true);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
-      const res = await fetch(`${apiUrl}/api/student-works`, { credentials: 'include' });
+      const res = await fetch(`${apiUrl}/api/student-works`, {
+        headers: { ...getAuthHeaders() },
+        credentials: 'include'
+      });
       if (res.ok) {
         const data = await res.json();
         setStudentWorks(data);
@@ -243,6 +266,7 @@ export default function AdminPage() {
       const endpoint = editId ? `${apiUrl}/api/${baseRoute}/${editId}` : `${apiUrl}/api/${baseRoute}`;
 
       const headers: Record<string, string> = {
+        ...getAuthHeaders(),
         'X-Admin-Request': 'true'
       };
 
@@ -297,6 +321,7 @@ export default function AdminPage() {
       const res = await fetch(`${apiUrl}/api/${baseRoute}/${id}`, {
         method: 'DELETE',
         headers: {
+          ...getAuthHeaders(),
           'Content-Type': 'application/json',
           'X-Admin-Request': 'true'
         },

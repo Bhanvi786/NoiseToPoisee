@@ -316,18 +316,18 @@ app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
   }
   
   if (passcode === process.env.ADMIN_PASSCODE) {
-    const token = jwt.sign({ admin: true }, process.env.JWT_SECRET || 'fallback_secret_change_in_production', { expiresIn: '1d' });
+    const token = jwt.sign({ admin: true }, process.env.JWT_SECRET || 'fallback_secret_change_in_production', { expiresIn: '8h' });
     
-    // Set cross-origin HttpOnly cookie (SameSite=None required for different-domain frontend/backend)
-    // CSRF is mitigated by the X-Admin-Request header check in authenticateAdmin
+    // Also set HttpOnly cookie as fallback for same-domain setups
     res.cookie('admin_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
+      maxAge: 8 * 60 * 60 * 1000 // 8 hours
     });
 
-    return res.json({ success: true, message: 'Authenticated successfully' });
+    // Return token in body for cross-origin SPA (stored in sessionStorage)
+    return res.json({ success: true, message: 'Authenticated successfully', token });
   }
   
   // Generic error for brute force resistance
@@ -336,7 +336,14 @@ app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
 
 // Verify session endpoint for frontend
 app.get('/api/admin/verify-session', (req, res) => {
-  const token = req.cookies.admin_token;
+  // Check Authorization header first, then cookie
+  let token = null;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else {
+    token = req.cookies.admin_token;
+  }
   if (!token) return res.status(401).json({ isAuthenticated: false });
 
   try {
@@ -366,8 +373,14 @@ const authenticateAdmin = (req, res, next) => {
     }
   }
 
-  // Session verification via HttpOnly cookie
-  const token = req.cookies.admin_token;
+  // Accept token from Authorization header (cross-origin SPA) or cookie (same-domain)
+  let token = null;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else {
+    token = req.cookies.admin_token;
+  }
   
   if (!token) {
     if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
