@@ -318,11 +318,12 @@ app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
   if (passcode === process.env.ADMIN_PASSCODE) {
     const token = jwt.sign({ admin: true }, process.env.JWT_SECRET || 'fallback_secret_change_in_production', { expiresIn: '1d' });
     
-    // Set secure HttpOnly cookie
+    // Set cross-origin HttpOnly cookie (SameSite=None required for different-domain frontend/backend)
+    // CSRF is mitigated by the X-Admin-Request header check in authenticateAdmin
     res.cookie('admin_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000 // 1 day
     });
 
@@ -350,7 +351,7 @@ app.post('/api/admin/logout', (req, res) => {
   res.clearCookie('admin_token', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   });
   return res.json({ success: true });
 });
