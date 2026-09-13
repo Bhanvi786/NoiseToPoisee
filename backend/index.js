@@ -662,7 +662,7 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
   try {
     console.log(`[contact] Attempting to send email from <${email}>...`);
     const { data, error } = await resend.emails.send({
-      from: 'Artograph Contact <onboarding@resend.dev>',  // replace with your verified domain later
+      from: 'Artograph Contact <noreply@artographbydeepti.com>',
       to:      ['deeptiarora1881@gmail.com'],
       replyTo: email,
       subject: `New Contact Inquiry from ${name}`,
