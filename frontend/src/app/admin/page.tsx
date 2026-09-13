@@ -367,7 +367,7 @@ export default function AdminPage() {
           </Link>
           
           <h1 className="font-serif text-xl tracking-tight text-wine font-semibold">
-            Noise to Poise <span className="font-light text-charcoal/60">Dashboard</span>
+            Artograph <span className="font-light text-charcoal/60">Dashboard</span>
           </h1>
 
           {isAuthenticated ? (
