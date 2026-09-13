@@ -652,13 +652,20 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
     });
   }
 
-  // --- Build Nodemailer transporter (created per-request so env changes are picked up) ---
+  // --- Build Nodemailer transporter ---
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_APP_PASSWORD
-    }
+    },
+    // Force IPv4 if Render has IPv6 routing issues, and add timeouts so it doesn't hang forever
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 15000
   });
 
   // --- Compose email ---
@@ -692,12 +699,12 @@ app.post('/api/contact', contactLimiter, async (req, res) => {
 
   // --- Send ---
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`[contact] Email sent successfully from <${email}> — name: "${name}"`);
+    console.log(`[contact] Attempting to send email from <${email}>...`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`[contact] Email sent successfully! Message ID: ${info.messageId}`);
     return res.json({ success: true, message: 'Your message has been sent successfully.' });
   } catch (err) {
-    // Log the error type/code server-side without revealing internals to the client
-    console.error(`[contact] Failed to send email — code: ${err.code || 'UNKNOWN'}, message: ${err.message}`);
+    console.error(`[contact] Failed to send email:`, err);
     return res.status(500).json({
       success: false,
       error: 'Unable to send your message right now. Please try again later.'
