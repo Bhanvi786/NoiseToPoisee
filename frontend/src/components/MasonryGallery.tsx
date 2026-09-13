@@ -407,7 +407,20 @@ export default function MasonryGallery() {
                 <div className="pt-6">
                   <a
                     href="#contact"
-                    onClick={() => setSelectedArtwork(null)}
+                    onClick={() => {
+                      setSelectedArtwork(null);
+                      // Delay slightly so the modal closes and scroll starts smoothly
+                      setTimeout(() => {
+                        const event = new CustomEvent('inquireArtwork', {
+                          detail: {
+                            title: selectedArtwork.title,
+                            medium: selectedArtwork.medium,
+                            dimensions: selectedArtwork.dimensions
+                          }
+                        });
+                        window.dispatchEvent(event);
+                      }, 100);
+                    }}
                     className="w-full text-center block bg-wine text-[#F7F2EC] hover:bg-charcoal uppercase tracking-[0.2em] text-xs py-4 font-sans font-medium rounded-lg transition-colors duration-300"
                   >
                     Inquire About Acquisition

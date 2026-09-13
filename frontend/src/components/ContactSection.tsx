@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ContactSection() {
@@ -10,6 +10,22 @@ export default function ContactSection() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Listen for 'inquireArtwork' event dispatched by gallery modals
+  useEffect(() => {
+    const handleInquire = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { title, medium, dimensions } = customEvent.detail;
+      const prefillMessage = `Hello, I am interested in acquiring the artwork '${title}' (${medium}, ${dimensions}). Please let me know more details.`;
+      
+      setFormData(prev => ({ ...prev, message: prefillMessage }));
+      // If they were looking at the success state from a previous message, clear it
+      setIsSubmitted(false); 
+    };
+
+    window.addEventListener('inquireArtwork', handleInquire);
+    return () => window.removeEventListener('inquireArtwork', handleInquire);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
