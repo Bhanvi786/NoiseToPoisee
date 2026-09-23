@@ -21,6 +21,10 @@ const ArtworkSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  images: {
+    type: [String],
+    default: [],
+  },
   aspect: {
     type: String,
     default: 'aspect-square',

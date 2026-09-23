@@ -120,9 +120,24 @@ const upload = multer({
   fileFilter 
 });
 
-// Middleware to gracefully handle Multer errors
+// Middleware to gracefully handle Multer errors (Single file)
 const handleUpload = (req, res, next) => {
   upload.single('image')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large. Maximum size is 5MB.' });
+      }
+      return res.status(400).json({ error: err.message });
+    } else if (err) {
+      return res.status(500).json({ error: err.message || 'Unknown upload error' });
+    }
+    next();
+  });
+};
+
+// Middleware to gracefully handle Multer errors (Multiple files - up to 10)
+const handleMultipleUpload = (req, res, next) => {
+  upload.array('images', 10)(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
         return res.status(413).json({ error: 'File too large. Maximum size is 5MB.' });
@@ -402,34 +417,35 @@ const sanitizeText = (str) => {
   return str.replace(/[<>&"']/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
 };
 
-// Add new artwork (Upload image + save to MongoDB)
-app.post('/api/artworks', authenticateAdmin, handleUpload, async (req, res) => {
+// Add new artwork (Upload images + save to MongoDB)
+app.post('/api/artworks', authenticateAdmin, handleMultipleUpload, async (req, res) => {
   try {
     const { title, year, medium, dimensions, aspect, description, isSold } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ error: 'Image file is required' });
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: 'At least one image file is required' });
     }
 
-    let imageUrl = '';
+    let imageUrls = [];
 
-    if (isCloudinaryConfigured) {
-      // Upload to Cloudinary
-      try {
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: 'artograph_drawings'
-        });
-        imageUrl = result.secure_url;
-        // Delete local temporary file
-        fs.unlinkSync(req.file.path);
-      } catch (cloudErr) {
-        console.error('Cloudinary upload error:', cloudErr);
-        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
+    for (const file of req.files) {
+      if (isCloudinaryConfigured) {
+        // Upload to Cloudinary
+        try {
+          const result = await cloudinary.uploader.upload(file.path, {
+            folder: 'artograph_drawings'
+          });
+          imageUrls.push(result.secure_url);
+          // Delete local temporary file
+          if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        } catch (cloudErr) {
+          console.error('Cloudinary upload error:', cloudErr);
+          if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+          return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
+        }
+      } else {
+        imageUrls.push(`/uploads/${file.filename}`);
       }
-    } else {
-      // Cloudinary strictly required, but for local testing:
-      imageUrl = `/uploads/${req.file.filename}`;
     }
 
     const newArtwork = new Artwork({
@@ -437,7 +453,8 @@ app.post('/api/artworks', authenticateAdmin, handleUpload, async (req, res) => {
       year: sanitizeText(year),
       medium: sanitizeText(medium),
       dimensions: sanitizeText(dimensions),
-      image: imageUrl,
+      image: imageUrls[0], // Primary image
+      images: imageUrls,
       aspect: sanitizeText(aspect) || 'aspect-square',
       description: sanitizeText(description),
       isSold: isSold === 'true' || isSold === true
@@ -447,20 +464,34 @@ app.post('/api/artworks', authenticateAdmin, handleUpload, async (req, res) => {
     res.status(201).json(newArtwork);
   } catch (err) {
     console.error('Error adding artwork:', err);
-    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    if (req.files) {
+      for (const file of req.files) {
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      }
+    }
     res.status(500).json({ error: 'Server error saving artwork' });
   }
 });
 
 // Edit/Update artwork
-app.put('/api/artworks/:id', authenticateAdmin, handleUpload, async (req, res) => {
+app.put('/api/artworks/:id', authenticateAdmin, handleMultipleUpload, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, year, medium, dimensions, aspect, description, isSold } = req.body;
+    let existingImages = req.body.existingImages || [];
+    
+    // Ensure existingImages is an array
+    if (typeof existingImages === 'string') {
+      existingImages = [existingImages];
+    }
 
     const artwork = await Artwork.findById(id);
     if (!artwork) {
-      if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+      if (req.files) {
+        for (const file of req.files) {
+          if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+        }
+      }
       return res.status(404).json({ error: 'Artwork not found' });
     }
 
@@ -475,39 +506,59 @@ app.put('/api/artworks/:id', authenticateAdmin, handleUpload, async (req, res) =
       artwork.isSold = isSold === 'true' || isSold === true;
     }
 
-    // If new image is uploaded
-    if (req.file) {
-      // Clean up old local image if it existed
-      if (artwork.image.startsWith('/uploads/')) {
-        const oldFileName = artwork.image.split('/').pop();
+    // Process new images
+    let newImageUrls = [];
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        if (isCloudinaryConfigured) {
+          try {
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: 'artograph_drawings'
+            });
+            newImageUrls.push(result.secure_url);
+            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+          } catch (cloudErr) {
+            console.error('Cloudinary upload error during update:', cloudErr);
+            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+            return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
+          }
+        } else {
+          newImageUrls.push(`/uploads/${file.filename}`);
+        }
+      }
+    }
+
+    // Combine existing and new images
+    const finalImages = [...existingImages, ...newImageUrls];
+    
+    if (finalImages.length === 0) {
+      return res.status(400).json({ error: 'At least one image is required.' });
+    }
+
+    // Identify images that were removed and delete them locally if applicable
+    const oldImages = artwork.images && artwork.images.length > 0 ? artwork.images : [artwork.image];
+    const removedImages = oldImages.filter(img => !existingImages.includes(img));
+    
+    for (const removedImg of removedImages) {
+      if (removedImg && removedImg.startsWith('/uploads/')) {
+        const oldFileName = removedImg.split('/').pop();
         const oldFilePath = path.join(uploadsDir, oldFileName);
         if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
       }
-
-      let imageUrl = '';
-      if (isCloudinaryConfigured) {
-        try {
-          const result = await cloudinary.uploader.upload(req.file.path, {
-            folder: 'artograph_drawings'
-          });
-          imageUrl = result.secure_url;
-          fs.unlinkSync(req.file.path);
-        } catch (cloudErr) {
-          console.error('Cloudinary upload error during update:', cloudErr);
-          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-          return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
-        }
-      } else {
-        imageUrl = `/uploads/${req.file.filename}`;
-      }
-      artwork.image = imageUrl;
     }
+
+    artwork.images = finalImages;
+    artwork.image = finalImages[0]; // Primary image
 
     await artwork.save();
     res.json(artwork);
   } catch (err) {
     console.error('Error updating artwork:', err);
-    if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    if (req.files) {
+      for (const file of req.files) {
+        if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      }
+    }
     res.status(500).json({ error: 'Server error updating artwork' });
   }
 });

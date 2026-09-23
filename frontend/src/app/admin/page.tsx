@@ -26,6 +26,7 @@ interface ArtworkType {
   medium: string;
   dimensions: string;
   image: string;
+  images?: string[];
   aspect: string;
   description: string;
   isSold?: boolean;
@@ -71,8 +72,9 @@ export default function AdminPage() {
   const [dimensions, setDimensions] = useState('');
   const [aspect, setAspect] = useState('aspect-square');
   const [description, setDescription] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [isSold, setIsSold] = useState(false);
 
@@ -217,22 +219,42 @@ export default function AdminPage() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      if (activeTab === 'exhibition') {
+        setImageFiles(prev => [...prev, ...files]);
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+      } else {
+        setImageFiles([files[0]]);
+        setImagePreviews([URL.createObjectURL(files[0])]);
+      }
     }
+    // reset input so same file can be selected again if removed
+    e.target.value = '';
+  };
+
+  const removeNewImage = (index: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editId && !imageFile) {
-      setSubmitError('Please upload an image.');
-      return;
+    if (activeTab === 'exhibition') {
+      if (!editId && imageFiles.length === 0 && existingImages.length === 0) {
+        setSubmitError('Please upload at least one image.');
+        return;
+      }
+    } else {
+      if (!editId && imageFiles.length === 0) {
+        setSubmitError('Please upload an image.');
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -243,8 +265,19 @@ export default function AdminPage() {
     formData.append('title', title);
     formData.append('medium', medium);
     formData.append('dimensions', dimensions);
-    if (imageFile) {
-      formData.append('image', imageFile);
+    
+    imageFiles.forEach(file => {
+      if (activeTab === 'exhibition') {
+        formData.append('images', file);
+      } else {
+        formData.append('image', file);
+      }
+    });
+
+    if (activeTab === 'exhibition') {
+      existingImages.forEach(img => {
+        formData.append('existingImages', img);
+      });
     }
 
     const isExhibition = activeTab === 'exhibition';
@@ -351,8 +384,18 @@ export default function AdminPage() {
     setTitle(art.title);
     setMedium(mapMediumToStandard(art.medium));
     setDimensions(art.dimensions);
-    setImageFile(null);
-    setImagePreview(getImageUrl(art.image));
+    setImageFiles([]);
+    setImagePreviews([]);
+    setExistingImages([]);
+
+    if (activeTab === 'exhibition') {
+      const artImages = art.images && art.images.length > 0 ? art.images : [art.image];
+      setExistingImages(artImages.filter(Boolean));
+    } else {
+      if (art.image) {
+        setImagePreviews([getImageUrl(art.image)]);
+      }
+    }
 
     if (activeTab === 'exhibition') {
       setYear(art.year);
@@ -380,8 +423,9 @@ export default function AdminPage() {
     setDimensions('');
     setAspect('aspect-square');
     setDescription('');
-    setImageFile(null);
-    setImagePreview(null);
+    setImageFiles([]);
+    setImagePreviews([]);
+    setExistingImages([]);
     setArtist('');
     setMentorshipYear('Mentorship Class of 2025');
     setIsSold(false);
@@ -550,44 +594,93 @@ export default function AdminPage() {
                   {/* File Upload Zone */}
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-2 font-sans">
-                      Artwork Image File
+                      {activeTab === 'exhibition' ? 'Artwork Images' : 'Artwork Image File'}
                     </label>
                     <div className="relative border-2 border-dashed border-charcoal/15 hover:border-wine/40 rounded-xl p-6 transition-colors duration-300 bg-transparent flex flex-col items-center justify-center min-h-[200px]">
-                      {imagePreview ? (
-                        <div className="relative w-full flex flex-col items-center space-y-4">
-                          <div className="relative w-40 h-40 bg-[#EADFD0] border border-charcoal/5 overflow-hidden shadow-sm">
-                            <Image 
-                              src={imagePreview} 
-                              alt="Preview" 
-                              fill 
-                              className="object-cover"
+                      {activeTab === 'exhibition' ? (
+                        <div className="w-full">
+                          {(existingImages.length > 0 || imagePreviews.length > 0) && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6 w-full">
+                              {existingImages.map((img, idx) => (
+                                <div key={`existing-${idx}`} className="relative flex flex-col items-center space-y-2">
+                                  <div className="relative w-full aspect-square bg-[#EADFD0] border border-charcoal/5 overflow-hidden shadow-sm">
+                                    {idx === 0 && (
+                                      <div className="absolute top-1 left-1 bg-wine text-[#F7F2EC] text-[8px] uppercase tracking-widest font-sans font-semibold px-1.5 py-0.5 rounded shadow-md z-20">
+                                        Primary
+                                      </div>
+                                    )}
+                                    <Image src={getImageUrl(img)} alt={`Existing ${idx}`} fill className="object-cover" />
+                                  </div>
+                                  <button type="button" onClick={() => removeExistingImage(idx)} className="text-[10px] text-wine hover:underline uppercase tracking-widest font-bold">Remove</button>
+                                </div>
+                              ))}
+                              {imagePreviews.map((img, idx) => (
+                                <div key={`new-${idx}`} className="relative flex flex-col items-center space-y-2">
+                                  <div className="relative w-full aspect-square bg-[#EADFD0] border border-charcoal/5 overflow-hidden shadow-sm">
+                                    {(existingImages.length === 0 && idx === 0) && (
+                                      <div className="absolute top-1 left-1 bg-wine text-[#F7F2EC] text-[8px] uppercase tracking-widest font-sans font-semibold px-1.5 py-0.5 rounded shadow-md z-20">
+                                        Primary
+                                      </div>
+                                    )}
+                                    <Image src={img} alt={`New ${idx}`} fill className="object-cover" />
+                                  </div>
+                                  <button type="button" onClick={() => removeNewImage(idx)} className="text-[10px] text-wine hover:underline uppercase tracking-widest font-bold">Remove</button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div className="relative w-full flex flex-col items-center">
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              multiple 
+                              onChange={handleImageChange}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             />
+                            <div className="p-4 border border-charcoal/10 rounded-lg hover:bg-wine/5 flex flex-col items-center cursor-pointer transition-colors w-full">
+                              <Plus size={24} className="text-charcoal/40 mb-2" />
+                              <p className="text-sm font-medium text-charcoal/70 text-center">Drag & Drop or Click to Add Images</p>
+                              <p className="text-xs text-charcoal/40 text-center mt-1">Supports PNG, JPG, JPEG, WebP</p>
+                            </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => { setImageFile(null); setImagePreview(null); }}
-                            className="text-xs text-wine hover:underline uppercase tracking-widest font-bold"
-                          >
-                            Remove Image
-                          </button>
                         </div>
                       ) : (
-                        <>
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            onChange={handleImageChange}
-                            required={!editId}
-                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          />
-                          <Upload size={28} className="text-charcoal/40 mb-3" />
-                          <p className="text-sm font-medium text-charcoal/70 text-center">
-                            Drag & Drop drawing image, or <span className="text-wine underline cursor-pointer">browse</span>
-                          </p>
-                          <p className="text-xs text-charcoal/40 text-center mt-1">
-                            Supports PNG, JPG, JPEG, WebP
-                          </p>
-                        </>
+                        imagePreviews.length > 0 ? (
+                          <div className="relative w-full flex flex-col items-center space-y-4">
+                            <div className="relative w-40 h-40 bg-[#EADFD0] border border-charcoal/5 overflow-hidden shadow-sm">
+                              <Image 
+                                src={imagePreviews[0]} 
+                                alt="Preview" 
+                                fill 
+                                className="object-cover"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => { setImageFiles([]); setImagePreviews([]); }}
+                              className="text-xs text-wine hover:underline uppercase tracking-widest font-bold"
+                            >
+                              Remove Image
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleImageChange}
+                              required={!editId}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                            <Upload size={28} className="text-charcoal/40 mb-3" />
+                            <p className="text-sm font-medium text-charcoal/70 text-center">
+                              Drag & Drop drawing image, or <span className="text-wine underline cursor-pointer">browse</span>
+                            </p>
+                            <p className="text-xs text-charcoal/40 text-center mt-1">
+                              Supports PNG, JPG, JPEG, WebP
+                            </p>
+                          </>
+                        )
                       )}
                     </div>
                   </div>
