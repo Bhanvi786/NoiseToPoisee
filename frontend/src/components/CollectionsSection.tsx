@@ -14,6 +14,7 @@ interface ArtworkType {
   medium: string;
   dimensions: string;
   image: string;
+  images?: string[];
   aspect?: string;
   description: string;
   isSold?: boolean;
@@ -129,8 +130,15 @@ export default function CollectionsSection() {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [artworksList, setArtworksList] = useState<ArtworkType[]>([]);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkType | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [slowLoading, setSlowLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedArtwork) {
+      setCurrentImageIndex(0);
+    }
+  }, [selectedArtwork]);
 
   useEffect(() => {
     // Try to load from cache immediately
@@ -365,16 +373,45 @@ export default function CollectionsSection() {
                 </button>
 
                 {/* Left Side: Artwork Image */}
-                <div className="md:col-span-7 relative shrink-0 h-[350px] md:h-[85vh] bg-charcoal flex items-center justify-center">
-                  <div className="relative w-full h-full">
+                <div className="md:col-span-7 relative shrink-0 h-[350px] md:h-[85vh] bg-charcoal flex flex-col items-center justify-center group">
+                  <div className="relative w-full h-full flex-grow">
                     <Image
-                      src={getImageUrl(selectedArtwork.image)}
+                      src={getImageUrl((selectedArtwork.images && selectedArtwork.images.length > 0) ? selectedArtwork.images[currentImageIndex] : selectedArtwork.image)}
                       alt={selectedArtwork.title}
                       fill
                       className="object-contain p-4 sm:p-8"
                       priority
                     />
                   </div>
+
+                  {/* Carousel Controls */}
+                  {selectedArtwork.images && selectedArtwork.images.length > 1 && (
+                    <>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(prev => prev > 0 ? prev - 1 : selectedArtwork.images!.length - 1); }}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors z-20"
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(prev => prev < selectedArtwork.images!.length - 1 ? prev + 1 : 0); }}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors z-20"
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                      </button>
+                      
+                      {/* Thumbnails indicator */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+                        {selectedArtwork.images.map((_, idx) => (
+                          <div 
+                            key={idx} 
+                            className={`w-2 h-2 rounded-full transition-colors cursor-pointer ${idx === currentImageIndex ? 'bg-white' : 'bg-white/40 hover:bg-white/70'}`}
+                            onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Right Side: Artwork Info */}
