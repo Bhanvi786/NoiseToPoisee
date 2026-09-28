@@ -134,46 +134,50 @@ export default function StudentsGalleryPage() {
                 whileInView="visible"
                 viewport={{ once: true, margin: '-5% 0px' }}
                 variants={fadeUp}
-                className="space-y-6 flex flex-col justify-between"
+                className="group bg-[#FDFBF7] rounded-xl overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 border border-charcoal/5 hover:border-wine/10 flex flex-col h-full"
               >
-                <div className="space-y-6">
-                  {/* Image Frame */}
-                  <div className="relative aspect-square w-full rounded-2xl overflow-hidden shadow-xl border border-wine/5 bg-[#EADFD0] group">
+                {/* Image Wrap (Editorial Matting) */}
+                <div className="relative aspect-[4/5] lg:aspect-square w-full bg-[#EADFD0] p-6 sm:p-10 lg:p-12 flex items-center justify-center overflow-hidden">
+                  <div className="relative w-full h-full flex items-center justify-center">
                     <Image
                       src={getImageUrl(work.image)}
                       alt={work.title}
                       fill
+                      loading="lazy"
                       sizes="(max-width: 1024px) 100vw, 45vw"
-                      className="object-contain transition-transform duration-[2000ms] ease-out group-hover:scale-103"
+                      className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
                     />
-                    <div className="absolute top-4 right-4 bg-[#F7F2EB]/90 backdrop-blur-sm px-4 py-2 rounded-full border border-wine/10">
-                      <span className="text-[10px] uppercase tracking-widest text-wine font-sans font-medium">
-                        Student Work
-                      </span>
+                  </div>
+                  <div className="absolute top-6 right-6 bg-wine/95 text-[#F7F2EC] text-[9px] uppercase tracking-widest font-sans font-medium px-4 py-1.5 rounded shadow-sm z-20 backdrop-blur-sm">
+                    Student Work
+                  </div>
+                  <div className="absolute inset-0 bg-charcoal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10" />
+                </div>
+
+                {/* Details */}
+                <div className="p-6 sm:p-8 flex-grow flex flex-col space-y-4 bg-[#FDFBF7]">
+                  <div className="space-y-2">
+                    <h3 className="font-serif text-2xl sm:text-3xl font-normal text-charcoal group-hover:text-wine transition-colors duration-300">
+                      {work.title}
+                    </h3>
+                    <div className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-charcoal/60 flex flex-wrap gap-2 items-center font-sans">
+                      <span>{work.mentorshipYear}</span>
+                      <span className="w-1 h-1 rounded-full bg-charcoal/30"></span>
+                      <span>{work.medium}</span>
                     </div>
+                    {work.artist && (
+                      <span className="text-sm sm:text-base font-signature text-brown font-medium block mt-1">
+                        by {work.artist}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Details */}
-                  <div className="space-y-3 pt-2">
-                    <div className="flex justify-between items-baseline border-b border-wine/10 pb-2">
-                      <h3 className="font-serif text-3xl font-light text-charcoal">
-                        {work.title}
-                      </h3>
-                      {work.artist && (
-                        <span className="text-sm font-signature text-brown font-medium">
-                          by {work.artist}
-                        </span>
-                      )}
-                    </div>
+                  <p className="text-sm text-charcoal/70 leading-relaxed font-sans font-light pt-2 line-clamp-3">
+                    {work.concept}
+                  </p>
 
-                    <div className="flex justify-between text-xs tracking-wider text-charcoal/40 font-sans">
-                      <span>{work.dimensions ? `${work.medium} \u2022 ${work.dimensions}` : work.medium}</span>
-                      <span className="text-wine font-medium uppercase text-[10px] tracking-widest">{work.mentorshipYear}</span>
-                    </div>
-
-                    <p className="text-sm text-charcoal/70 leading-relaxed font-sans font-light pt-2">
-                      {work.concept}
-                    </p>
+                  <div className="flex justify-between items-center text-xs tracking-wider text-charcoal/50 pt-4 border-t border-charcoal/5 font-sans mt-auto">
+                    <span>{work.dimensions}</span>
                   </div>
                 </div>
               </motion.div>

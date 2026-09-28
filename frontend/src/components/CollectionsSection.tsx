@@ -273,51 +273,49 @@ export default function CollectionsSection() {
                   display: isVisible ? 'flex' : 'none'
                 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="group cursor-pointer bg-[#FDFBF7] rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 border border-wine/5 flex flex-col"
+                className="group cursor-pointer bg-[#FDFBF7] rounded-lg overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 border border-charcoal/5 hover:border-wine/10 flex flex-col"
                 onClick={() => setSelectedArtwork(art)}
               >
-                {/* Image Wrap */}
-                <div className="relative aspect-square w-full overflow-hidden bg-[#EADFD0]">
-                  <Image
-                    src={getImageUrl(art.image)}
-                    alt={art.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                  />
+                {/* Image Wrap (Editorial Matting) */}
+                <div className="relative aspect-[4/5] sm:aspect-square w-full bg-[#EADFD0] p-4 sm:p-6 lg:p-8 flex items-center justify-center overflow-hidden">
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <Image
+                      src={getImageUrl(art.image)}
+                      alt={art.title}
+                      fill
+                      loading="lazy"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                    />
+                  </div>
+                  {/* SOLD Badge */}
                   {art.isSold && (
-                    <div className="absolute top-4 left-4 bg-wine text-[#F7F2EC] text-[9px] uppercase tracking-widest font-sans font-semibold px-3 py-1.5 rounded-full shadow-md z-20">
+                    <div className="absolute top-4 left-4 bg-wine/95 text-[#F7F2EC] text-[8px] sm:text-[9px] uppercase tracking-widest font-sans font-medium px-3 py-1 rounded shadow-sm z-20 backdrop-blur-sm">
                       Sold
                     </div>
                   )}
                   {/* Subtle Hover Overlay */}
-                  <div className="absolute inset-0 bg-charcoal/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center space-x-3 z-10">
-                    <div className="bg-[#F7F2EB] text-wine p-3 rounded-full shadow-lg hover:scale-110 transition-transform duration-300">
-                      <ZoomIn size={18} />
-                    </div>
-                    <div className="bg-[#F7F2EB] text-charcoal p-3 rounded-full shadow-lg hover:scale-110 transition-transform duration-300">
-                      <Info size={18} />
-                    </div>
-                  </div>
+                  <div className="absolute inset-0 bg-charcoal/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-10" />
                 </div>
 
                 {/* Details */}
-                <div className="p-3 sm:p-4 md:p-6 flex-grow flex flex-col justify-between space-y-2 sm:space-y-3 bg-[#FDFBF7]">
-                  <div className="space-y-0.5 sm:space-y-1">
-                    <span className="text-[8px] sm:text-[9px] md:text-[10px] uppercase tracking-[0.1em] sm:tracking-[0.2em] text-wine flex justify-between items-center">
-                      <span>{art.year} &bull; {art.medium}</span>
-                      <span className={`font-semibold uppercase tracking-wider text-[7px] sm:text-[8px] ${art.isSold ? 'text-wine' : 'text-green-700/80'}`}>
-                        {art.isSold ? 'Sold' : 'Available'}
-                      </span>
-                    </span>
-                    <h3 className="font-serif text-base sm:text-lg md:text-2xl font-light text-charcoal group-hover:text-wine transition-colors duration-300">
+                <div className="p-4 sm:p-5 md:p-6 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4 bg-[#FDFBF7]">
+                  <div className="space-y-1.5">
+                    <h3 className="font-serif text-lg sm:text-xl md:text-2xl font-normal text-charcoal group-hover:text-wine transition-colors duration-300">
                       {art.title}
                     </h3>
+                    <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-charcoal/60 flex flex-wrap gap-2 items-center font-sans">
+                      <span>{art.year}</span>
+                      <span className="w-0.5 h-0.5 rounded-full bg-charcoal/30"></span>
+                      <span>{art.medium}</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center text-[9px] sm:text-[10px] md:text-xs tracking-wider text-charcoal/40 pt-1 sm:pt-2 border-t border-wine/5">
+                  
+                  <div className="flex justify-between items-center text-[10px] sm:text-[11px] tracking-wider text-charcoal/50 pt-3 sm:pt-4 border-t border-charcoal/5 font-sans mt-auto">
                     <span>{art.dimensions}</span>
-                    <span className="uppercase text-[8px] sm:text-[9px] md:text-[10px] tracking-[0.15em] sm:tracking-[0.2em] font-medium text-charcoal/60 group-hover:text-wine group-hover:translate-x-1 transition-all duration-300 hidden sm:inline">
-                      View Details &rarr;
+                    <span className="uppercase text-[9px] sm:text-[10px] tracking-[0.2em] font-medium text-wine/80 group-hover:text-wine group-hover:translate-x-1 transition-all duration-300 flex items-center space-x-1">
+                      <span>View Details</span>
+                      <span className="text-lg leading-none mb-0.5">&rsaquo;</span>
                     </span>
                   </div>
                 </div>

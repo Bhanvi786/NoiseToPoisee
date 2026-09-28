@@ -74,16 +74,19 @@ export default function FeaturedPaintings() {
                   variants={fadeUp}
                   className={`lg:col-span-7 relative ${isEven ? 'lg:pr-8' : 'lg:pl-8'}`}
                 >
-                  <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden shadow-2xl group border border-wine/5 bg-[#EADFD0]">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      sizes="(max-width: 1024px) 100vw, 60vw"
-                      className="object-contain transition-transform duration-[2000ms] ease-out group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex items-end p-8">
-                      <span className="text-xs uppercase tracking-widest text-white/80 font-sans">
+                  <div className="relative aspect-[4/3] w-full rounded-lg overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 group border border-charcoal/5 bg-[#EADFD0] p-6 sm:p-10 lg:p-12 flex items-center justify-center">
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        loading="lazy"
+                        sizes="(max-width: 1024px) 100vw, 60vw"
+                        className="object-contain transition-transform duration-[2000ms] ease-out group-hover:scale-[1.03]"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex items-end p-8 pointer-events-none">
+                      <span className="text-xs uppercase tracking-widest text-white/90 font-sans font-medium">
                         {item.size} &bull; {item.year}
                       </span>
                     </div>

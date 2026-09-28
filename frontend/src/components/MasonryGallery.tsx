@@ -172,31 +172,29 @@ export default function MasonryGallery() {
                       {/* Large white margin matting effect */}
                       <div className="p-2 sm:p-3 md:p-4 lg:p-5">
                         {/* Image container */}
-                        <div className={`relative ${art.aspect || 'aspect-square'} w-full overflow-hidden bg-[#EADFD0] border border-charcoal/5`}>
-                          <Image
-                            src={getImageUrl(art.image)}
-                            alt={art.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
-                          />
+                        <div className={`relative ${art.aspect || 'aspect-square'} w-full overflow-hidden bg-[#EADFD0] p-4 sm:p-6 lg:p-8 flex items-center justify-center border border-charcoal/5`}>
+                          <div className="relative w-full h-full flex items-center justify-center">
+                            <Image
+                              src={getImageUrl(art.image)}
+                              alt={art.title}
+                              fill
+                              loading="lazy"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                            />
+                          </div>
                           {art.isSold && (
-                            <div className="absolute top-4 left-4 bg-wine text-[#F7F2EC] text-[8px] uppercase tracking-widest font-sans font-semibold px-2.5 py-1.5 rounded shadow-md z-20">
+                            <div className="absolute top-4 left-4 bg-wine/95 text-[#F7F2EC] text-[8px] sm:text-[9px] uppercase tracking-widest font-sans font-medium px-3 py-1 rounded shadow-sm z-20 backdrop-blur-sm">
                               Sold
                             </div>
                           )}
 
                           {/* Dark Elegant Hover Overlay */}
-                          <div className="absolute inset-0 bg-charcoal/45 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-3 sm:p-4 md:p-6 z-10">
-                            {/* Zoom Indicator */}
-                            <div className="absolute top-4 right-4 bg-[#F7F2EC] text-wine p-2.5 rounded-full shadow-lg transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
-                              <ZoomIn size={16} />
-                            </div>
-
+                          <div className="absolute inset-0 bg-charcoal/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-4 sm:p-6 z-10 pointer-events-none">
                             {/* Info Text reveal */}
                             <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out text-[#F7F2EC]">
                               <p className="font-serif text-sm sm:text-base md:text-xl font-light">{art.title}</p>
-                              <p className="text-[10px] uppercase tracking-widest text-[#F7F2EC]/60 mt-1 font-sans">
+                              <p className="text-[8px] sm:text-[9px] uppercase tracking-widest text-[#F7F2EC]/80 mt-1.5 font-sans">
                                 {art.year} &bull; {art.medium}
                               </p>
                             </div>
@@ -223,31 +221,29 @@ export default function MasonryGallery() {
                       {/* Large white margin matting effect */}
                       <div className="p-2 sm:p-3 md:p-4 lg:p-5">
                         {/* Image container */}
-                        <div className={`relative ${art.aspect || 'aspect-square'} w-full overflow-hidden bg-[#EADFD0] border border-charcoal/5`}>
-                          <Image
-                            src={getImageUrl(art.image)}
-                            alt={art.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
-                          />
+                        <div className={`relative ${art.aspect || 'aspect-square'} w-full overflow-hidden bg-[#EADFD0] p-4 sm:p-6 lg:p-8 flex items-center justify-center border border-charcoal/5`}>
+                          <div className="relative w-full h-full flex items-center justify-center">
+                            <Image
+                              src={getImageUrl(art.image)}
+                              alt={art.title}
+                              fill
+                              loading="lazy"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                            />
+                          </div>
                           {art.isSold && (
-                            <div className="absolute top-4 left-4 bg-wine text-[#F7F2EC] text-[8px] uppercase tracking-widest font-sans font-semibold px-2.5 py-1.5 rounded shadow-md z-20">
+                            <div className="absolute top-4 left-4 bg-wine/95 text-[#F7F2EC] text-[8px] sm:text-[9px] uppercase tracking-widest font-sans font-medium px-3 py-1 rounded shadow-sm z-20 backdrop-blur-sm">
                               Sold
                             </div>
                           )}
 
                           {/* Dark Elegant Hover Overlay */}
-                          <div className="absolute inset-0 bg-charcoal/45 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-3 sm:p-4 md:p-6 z-10">
-                            {/* Zoom Indicator */}
-                            <div className="absolute top-4 right-4 bg-[#F7F2EC] text-wine p-2.5 rounded-full shadow-lg transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
-                              <ZoomIn size={16} />
-                            </div>
-
+                          <div className="absolute inset-0 bg-charcoal/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-4 sm:p-6 z-10 pointer-events-none">
                             {/* Info Text reveal */}
                             <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out text-[#F7F2EC]">
                               <p className="font-serif text-sm sm:text-base md:text-xl font-light">{art.title}</p>
-                              <p className="text-[10px] uppercase tracking-widest text-[#F7F2EC]/60 mt-1 font-sans">
+                              <p className="text-[8px] sm:text-[9px] uppercase tracking-widest text-[#F7F2EC]/80 mt-1.5 font-sans">
                                 {art.year} &bull; {art.medium}
                               </p>
                             </div>
@@ -277,31 +273,29 @@ export default function MasonryGallery() {
                       {/* Large white margin matting effect */}
                       <div className="p-2 sm:p-3 md:p-4 lg:p-5">
                         {/* Image container */}
-                        <div className={`relative ${art.aspect || 'aspect-square'} w-full overflow-hidden bg-[#EADFD0] border border-charcoal/5`}>
-                          <Image
-                            src={getImageUrl(art.image)}
-                            alt={art.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
-                          />
+                        <div className={`relative ${art.aspect || 'aspect-square'} w-full overflow-hidden bg-[#EADFD0] p-4 sm:p-6 lg:p-8 flex items-center justify-center border border-charcoal/5`}>
+                          <div className="relative w-full h-full flex items-center justify-center">
+                            <Image
+                              src={getImageUrl(art.image)}
+                              alt={art.title}
+                              fill
+                              loading="lazy"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                              className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                            />
+                          </div>
                           {art.isSold && (
-                            <div className="absolute top-4 left-4 bg-wine text-[#F7F2EC] text-[8px] uppercase tracking-widest font-sans font-semibold px-2.5 py-1.5 rounded shadow-md z-20">
+                            <div className="absolute top-4 left-4 bg-wine/95 text-[#F7F2EC] text-[8px] sm:text-[9px] uppercase tracking-widest font-sans font-medium px-3 py-1 rounded shadow-sm z-20 backdrop-blur-sm">
                               Sold
                             </div>
                           )}
 
                           {/* Dark Elegant Hover Overlay */}
-                          <div className="absolute inset-0 bg-charcoal/45 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-3 sm:p-4 md:p-6 z-10">
-                            {/* Zoom Indicator */}
-                            <div className="absolute top-4 right-4 bg-[#F7F2EC] text-wine p-2.5 rounded-full shadow-lg transform translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-out">
-                              <ZoomIn size={16} />
-                            </div>
-
+                          <div className="absolute inset-0 bg-charcoal/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-4 sm:p-6 z-10 pointer-events-none">
                             {/* Info Text reveal */}
                             <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out text-[#F7F2EC]">
                               <p className="font-serif text-sm sm:text-base md:text-xl font-light">{art.title}</p>
-                              <p className="text-[10px] uppercase tracking-widest text-[#F7F2EC]/60 mt-1 font-sans">
+                              <p className="text-[8px] sm:text-[9px] uppercase tracking-widest text-[#F7F2EC]/80 mt-1.5 font-sans">
                                 {art.year} &bull; {art.medium}
                               </p>
                             </div>
