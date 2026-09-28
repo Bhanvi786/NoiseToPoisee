@@ -627,11 +627,38 @@ app.delete('/api/artworks/:id', authenticateAdmin, async (req, res) => {
 // Fetch all student works
 app.get('/api/student-works', async (req, res) => {
   try {
-    const works = await StudentWork.find().sort({ createdAt: -1 });
+    const works = await StudentWork.find().sort({ displayOrder: 1, createdAt: -1 });
     res.json(works);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error fetching student works' });
+  }
+});
+
+// Reorder student works
+app.put('/api/student-works/reorder', authenticateAdmin, async (req, res) => {
+  try {
+    const { orderUpdates } = req.body;
+    
+    if (!Array.isArray(orderUpdates)) {
+      return res.status(400).json({ error: 'orderUpdates must be an array' });
+    }
+
+    const bulkOps = orderUpdates.map((item) => ({
+      updateOne: {
+        filter: { _id: item._id },
+        update: { $set: { displayOrder: item.displayOrder } }
+      }
+    }));
+
+    if (bulkOps.length > 0) {
+      await StudentWork.bulkWrite(bulkOps);
+    }
+    
+    res.json({ message: 'Student works reordered successfully' });
+  } catch (err) {
+    console.error('Error reordering student works:', err);
+    res.status(500).json({ error: 'Server error reordering student works' });
   }
 });
 
@@ -662,6 +689,10 @@ app.post('/api/student-works', authenticateAdmin, handleUpload, async (req, res)
       imageUrl = `/uploads/${req.file.filename}`;
     }
 
+    // Determine the next displayOrder to put it at the end
+    const maxOrderWork = await StudentWork.findOne().sort({ displayOrder: -1 });
+    const nextOrder = (maxOrderWork && maxOrderWork.displayOrder != null) ? maxOrderWork.displayOrder + 1 : 1;
+
     const newWork = new StudentWork({
       title: sanitizeText(title),
       artist: sanitizeText(artist),
@@ -669,7 +700,8 @@ app.post('/api/student-works', authenticateAdmin, handleUpload, async (req, res)
       medium: sanitizeText(medium),
       dimensions: sanitizeText(dimensions),
       image: imageUrl,
-      concept: sanitizeText(concept)
+      concept: sanitizeText(concept),
+      displayOrder: nextOrder
     });
 
     await newWork.save();

@@ -101,6 +101,11 @@ export default function AdminPage() {
   const [isSavingOrder, setIsSavingOrder] = useState(false);
   const [orderSaveSuccess, setOrderSaveSuccess] = useState(false);
 
+  // Student Reorder state
+  const [hasStudentOrderChanged, setHasStudentOrderChanged] = useState(false);
+  const [isSavingStudentOrder, setIsSavingStudentOrder] = useState(false);
+  const [studentOrderSaveSuccess, setStudentOrderSaveSuccess] = useState(false);
+
   // Check backend for valid session token
   useEffect(() => {
     const verifySession = async () => {
@@ -250,6 +255,49 @@ export default function AdminPage() {
     }
   };
 
+  const handleReorderStudent = (newOrder: any[]) => {
+    setStudentWorks(newOrder);
+    setHasStudentOrderChanged(true);
+  };
+
+  const handleSaveStudentOrder = async () => {
+    setIsSavingStudentOrder(true);
+    setStudentOrderSaveSuccess(false);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const orderUpdates = studentWorks.map((art, index) => ({
+        _id: art._id || String(art.id),
+        displayOrder: index + 1
+      }));
+      
+      const res = await fetch(`${apiUrl}/api/student-works/reorder`, {
+        method: 'PUT',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
+          'X-Admin-Request': 'true'
+        },
+        body: JSON.stringify({ orderUpdates }),
+        credentials: 'include'
+      });
+      
+      if (res.ok) {
+        setHasStudentOrderChanged(false);
+        setStudentOrderSaveSuccess(true);
+        setTimeout(() => setStudentOrderSaveSuccess(false), 3000);
+      } else {
+        alert('Failed to save the new order. Please try again.');
+        fetchStudentWorks(); // Revert to saved order
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while saving order.');
+      fetchStudentWorks(); // Revert to saved order
+    } finally {
+      setIsSavingStudentOrder(false);
+    }
+  };
+
   const fetchStudentWorks = async () => {
     setLoadingArtworks(true);
     try {
@@ -261,6 +309,7 @@ export default function AdminPage() {
       if (res.ok) {
         const data = await res.json();
         setStudentWorks(data);
+        setHasStudentOrderChanged(false);
       }
     } catch (err) {
       console.error('Error fetching student works:', err);
@@ -579,6 +628,8 @@ export default function AdminPage() {
                 onClick={() => {
                   setActiveTab('exhibition');
                   handleCancelEdit();
+                  setHasOrderChanged(false);
+                  setHasStudentOrderChanged(false);
                 }}
                 className={`text-xs uppercase tracking-[0.25em] px-6 py-3 font-sans transition-all duration-300 relative cursor-pointer ${
                   activeTab === 'exhibition' ? 'text-wine font-medium' : 'text-charcoal/50 hover:text-charcoal'
@@ -597,6 +648,8 @@ export default function AdminPage() {
                 onClick={() => {
                   setActiveTab('student');
                   handleCancelEdit();
+                  setHasOrderChanged(false);
+                  setHasStudentOrderChanged(false);
                 }}
                 className={`text-xs uppercase tracking-[0.25em] px-6 py-3 font-sans transition-all duration-300 relative cursor-pointer ${
                   activeTab === 'student' ? 'text-wine font-medium' : 'text-charcoal/50 hover:text-charcoal'
@@ -978,6 +1031,23 @@ export default function AdminPage() {
                       <span>Saved</span>
                     </div>
                   )}
+                  
+                  {activeTab === 'student' && hasStudentOrderChanged && (
+                    <button
+                      onClick={handleSaveStudentOrder}
+                      disabled={isSavingStudentOrder}
+                      className="shrink-0 flex items-center space-x-2 bg-wine hover:bg-wine/90 text-[#F7F2EC] px-4 py-2 rounded-xl text-xs uppercase tracking-widest font-semibold transition-all shadow-md cursor-pointer"
+                    >
+                      {isSavingStudentOrder ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                      <span>Save Order</span>
+                    </button>
+                  )}
+                  {activeTab === 'student' && studentOrderSaveSuccess && (
+                    <div className="shrink-0 flex items-center space-x-1.5 text-green-700 bg-green-50 px-3 py-2 rounded-xl text-xs uppercase tracking-wider font-semibold border border-green-150">
+                      <CheckCircle2 size={14} />
+                      <span>Saved</span>
+                    </div>
+                  )}
                 </div>
 
                 {loadingArtworks ? (
@@ -1080,75 +1150,84 @@ export default function AdminPage() {
                         ))}
                       </Reorder.Group>
                     ) : (
-                      studentWorks.map((art) => (
-                        <div 
-                          key={art._id || art.id}
-                          className="flex items-center space-x-4 p-3 rounded-xl hover:bg-wine/5 border border-charcoal/5 bg-transparent transition-all group"
-                        >
-                          {/* Thumbnail */}
-                          <div className="relative w-16 h-16 bg-[#EADFD0] overflow-hidden border border-charcoal/10 shrink-0">
-                            <Image
-                              src={getImageUrl(art.image)}
-                              alt={art.title}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
+                      <Reorder.Group axis="y" values={studentWorks} onReorder={handleReorderStudent} className="space-y-4">
+                        {studentWorks.map((art, index) => (
+                          <Reorder.Item
+                            key={art._id || String(art.id)}
+                            value={art}
+                            className="flex items-center space-x-4 p-3 rounded-xl hover:bg-wine/5 border border-charcoal/5 bg-[#FAF8F5] transition-colors group cursor-grab active:cursor-grabbing relative"
+                          >
+                            {/* Drag Handle */}
+                            <div className="text-charcoal/20 group-hover:text-wine/50 cursor-grab active:cursor-grabbing flex items-center justify-center">
+                              <GripVertical size={16} />
+                              <span className="text-[10px] font-bold font-sans ml-1 text-charcoal/40 w-3 text-center">{index + 1}</span>
+                            </div>
 
-                          {/* Details */}
-                          <div className="flex-grow min-w-0">
-                            <h4 className="font-serif text-sm text-charcoal font-medium truncate">{art.title}</h4>
-                            <p className="text-xs font-sans text-charcoal/60 truncate mt-0.5">
-                              {art.artist ? `${art.artist} • ${art.medium}` : art.medium}
-                            </p>
-                            <p className="text-[10px] uppercase tracking-widest text-wine/75 font-semibold mt-1 flex items-center gap-2">
-                              <span>{art.mentorshipYear}</span>
-                            </p>
-                          </div>
+                            {/* Thumbnail */}
+                            <div className="relative w-16 h-16 bg-[#EADFD0] overflow-hidden border border-charcoal/10 shrink-0 pointer-events-none">
+                              <Image
+                                src={getImageUrl(art.image)}
+                                alt={art.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
 
-                          {/* Action: Delete */}
-                          <div className="shrink-0">
-                            {deleteId === art._id || deleteId === String(art.id) ? (
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={() => handleDelete(art._id || String(art.id))}
-                                  disabled={isDeleting}
-                                  className="text-xs text-wine hover:underline font-bold uppercase tracking-widest cursor-pointer"
-                                >
-                                  Confirm
-                                </button>
-                                <button
-                                  onClick={() => setDeleteId(null)}
-                                  className="text-xs text-charcoal/50 hover:underline uppercase tracking-widest cursor-pointer"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center space-x-1">
-                                <button
-                                  onClick={() => handleStartEdit(art)}
-                                  className={`p-2 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer ${
-                                    editId === art._id || editId === String(art.id)
-                                      ? 'text-wine bg-wine/5'
-                                      : 'text-charcoal/30'
-                                  }`}
-                                  aria-label={`Edit ${art.title}`}
-                                >
-                                  <Pencil size={16} />
-                                </button>
-                                <button
-                                  onClick={() => setDeleteId(art._id || String(art.id))}
-                                  className="p-2 text-charcoal/30 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer"
-                                  aria-label={`Delete ${art.title}`}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
+                            {/* Details */}
+                            <div className="flex-grow min-w-0">
+                              <h4 className="font-serif text-sm text-charcoal font-medium truncate">{art.title}</h4>
+                              <p className="text-xs font-sans text-charcoal/60 truncate mt-0.5">
+                                {art.artist ? `${art.artist} • ${art.medium}` : art.medium}
+                              </p>
+                              <p className="text-[10px] uppercase tracking-widest text-wine/75 font-semibold mt-1 flex items-center gap-2">
+                                <span>{art.mentorshipYear}</span>
+                              </p>
+                            </div>
+
+                            {/* Action: Delete */}
+                            <div className="shrink-0">
+                              {deleteId === art._id || deleteId === String(art.id) ? (
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => handleDelete(art._id || String(art.id))}
+                                    disabled={isDeleting}
+                                    className="text-xs text-wine hover:underline font-bold uppercase tracking-widest cursor-pointer"
+                                  >
+                                    Confirm
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteId(null)}
+                                    className="text-xs text-charcoal/50 hover:underline uppercase tracking-widest cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1">
+                                  <button
+                                    onClick={() => handleStartEdit(art)}
+                                    className={`p-2 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer ${
+                                      editId === art._id || editId === String(art.id)
+                                        ? 'text-wine bg-wine/5'
+                                        : 'text-charcoal/30'
+                                    }`}
+                                    aria-label={`Edit ${art.title}`}
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteId(art._id || String(art.id))}
+                                    className="p-2 text-charcoal/30 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer"
+                                    aria-label={`Delete ${art.title}`}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </Reorder.Item>
+                        ))}
+                      </Reorder.Group>
                     )}
                   </div>
                 )}

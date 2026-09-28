@@ -32,6 +32,10 @@ const StudentWorkSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  displayOrder: {
+    type: Number,
+    default: 0,
   }
 });
 
