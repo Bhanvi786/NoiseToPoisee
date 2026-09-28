@@ -960,7 +960,7 @@ export default function AdminPage() {
                         <select
                           value={medium}
                           onChange={(e) => setMedium(e.target.value)}
-                          required={activeTab !== 'book'}
+                          required
                           className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-transparent focus:outline-none focus:border-wine transition-colors font-sans text-sm text-charcoal"
                         >
                           <option value="" disabled className="text-charcoal/50">Select Medium</option>
@@ -1063,7 +1063,6 @@ export default function AdminPage() {
                   )}
 
                   <div>
-                    <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-1.5 font-sans">
                     <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-1.5 font-sans">
                       {activeTab === 'exhibition' ? 'Description / Story' : (activeTab === 'book' ? 'Book Description' : 'Student Concept / Description')}
                     </label>
