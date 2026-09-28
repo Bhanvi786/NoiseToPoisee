@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 
 const navItems = [
-  { name: 'Home', href: '#home' },
-  { name: 'About', href: '#about' },
-  { name: 'Collections', href: '#collections' },
-  { name: 'Student Work', href: '#students-work' },
-  { name: 'Contact', href: '#contact' },
+  { name: 'Home', href: '/#home' },
+  { name: 'About', href: '/#about' },
+  { name: 'Collections', href: '/#collections' },
+  { name: 'Student Work', href: '/#students-work' },
+  { name: 'Book Illustrations', href: '/book-illustrations' },
+  { name: 'Contact', href: '/#contact' },
 ];
 
 export default function Navbar() {
@@ -24,13 +25,15 @@ export default function Navbar() {
       setScrolled(window.scrollY > 50);
 
       // Identify active section
-      const sections = navItems.map(item => document.getElementById(item.href.replace('#', '')));
       const scrollPosition = window.scrollY + window.innerHeight / 3;
 
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
+      for (let i = navItems.length - 1; i >= 0; i--) {
+        const item = navItems[i];
+        if (!item.href.includes('#')) continue;
+        const sectionId = item.href.split('#')[1];
+        const section = document.getElementById(sectionId);
         if (section && scrollPosition >= section.offsetTop) {
-          setActiveSection(navItems[i].href.replace('#', ''));
+          setActiveSection(sectionId);
           break;
         }
       }
@@ -41,15 +44,24 @@ export default function Navbar() {
   }, []);
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault();
-    const id = href.replace('#', '');
+    if (!href.includes('#')) {
+      // It's a different page, just close the menu and let default navigation happen
+      setIsOpen(false);
+      return;
+    }
+
+    // If it's a hash link, check if we are on the same page
+    const id = href.split('#')[1];
     const element = document.getElementById(id);
+    
     if (element) {
+      e.preventDefault();
       // Smooth scroll using native or Lenis if active
       element.scrollIntoView({ behavior: 'smooth' });
       setActiveSection(id);
       setIsOpen(false);
     }
+    // If element is not found, we are on a different page, let the standard link navigation happen
   };
 
   return (
@@ -80,7 +92,12 @@ export default function Navbar() {
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-6 lg:space-x-10">
             {navItems.map((item) => {
-              const isActive = activeSection === item.href.replace('#', '');
+              let isActive = false;
+              if (item.href.includes('#')) {
+                isActive = activeSection === item.href.split('#')[1];
+              } else if (typeof window !== 'undefined') {
+                isActive = window.location.pathname === item.href;
+              }
               return (
                 <a
                   key={item.name}

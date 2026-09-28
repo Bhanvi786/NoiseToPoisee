@@ -65,7 +65,7 @@ export default function AdminPage() {
   const [isVerifying, setIsVerifying] = useState(false);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'exhibition' | 'student'>('exhibition');
+  const [activeTab, setActiveTab] = useState<'exhibition' | 'student' | 'book'>('exhibition');
 
   // Form fields
   const [title, setTitle] = useState('');
@@ -84,6 +84,9 @@ export default function AdminPage() {
   const [artist, setArtist] = useState('');
   const [mentorshipYear, setMentorshipYear] = useState('Mentorship Class of 2025');
 
+  // Book specific form fields
+  const [bookLink, setBookLink] = useState('');
+
   // States for actions
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -92,6 +95,7 @@ export default function AdminPage() {
   // Artworks list
   const [artworks, setArtworks] = useState<ArtworkType[]>([]);
   const [studentWorks, setStudentWorks] = useState<any[]>([]);
+  const [bookIllustrations, setBookIllustrations] = useState<any[]>([]);
   const [loadingArtworks, setLoadingArtworks] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -105,6 +109,11 @@ export default function AdminPage() {
   const [hasStudentOrderChanged, setHasStudentOrderChanged] = useState(false);
   const [isSavingStudentOrder, setIsSavingStudentOrder] = useState(false);
   const [studentOrderSaveSuccess, setStudentOrderSaveSuccess] = useState(false);
+
+  // Book Reorder state
+  const [hasBookOrderChanged, setHasBookOrderChanged] = useState(false);
+  const [isSavingBookOrder, setIsSavingBookOrder] = useState(false);
+  const [bookOrderSaveSuccess, setBookOrderSaveSuccess] = useState(false);
 
   // Check backend for valid session token
   useEffect(() => {
@@ -122,6 +131,7 @@ export default function AdminPage() {
             setIsAuthenticated(true);
             fetchArtworks();
             fetchStudentWorks();
+            fetchBookIllustrations();
           } else {
             sessionStorage.removeItem('admin_token');
           }
@@ -163,6 +173,7 @@ export default function AdminPage() {
         setIsAuthenticated(true);
         fetchArtworks();
         fetchStudentWorks();
+        fetchBookIllustrations();
       } else {
         setAuthError(data.error || 'Incorrect passcode');
       }
@@ -190,6 +201,7 @@ export default function AdminPage() {
     setPasscode('');
     setArtworks([]);
     setStudentWorks([]);
+    setBookIllustrations([]);
   };
 
   const fetchArtworks = async () => {
@@ -318,6 +330,69 @@ export default function AdminPage() {
     }
   };
 
+  const handleReorderBook = (newOrder: any[]) => {
+    setBookIllustrations(newOrder);
+    setHasBookOrderChanged(true);
+  };
+
+  const handleSaveBookOrder = async () => {
+    setIsSavingBookOrder(true);
+    setBookOrderSaveSuccess(false);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const orderUpdates = bookIllustrations.map((art, index) => ({
+        _id: art._id || String(art.id),
+        displayOrder: index + 1
+      }));
+      
+      const res = await fetch(`${apiUrl}/api/book-illustrations/reorder`, {
+        method: 'PUT',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
+          'X-Admin-Request': 'true'
+        },
+        body: JSON.stringify({ orderUpdates }),
+        credentials: 'include'
+      });
+      
+      if (res.ok) {
+        setHasBookOrderChanged(false);
+        setBookOrderSaveSuccess(true);
+        setTimeout(() => setBookOrderSaveSuccess(false), 3000);
+      } else {
+        alert('Failed to save the new order. Please try again.');
+        fetchBookIllustrations(); // Revert to saved order
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while saving order.');
+      fetchBookIllustrations(); // Revert to saved order
+    } finally {
+      setIsSavingBookOrder(false);
+    }
+  };
+
+  const fetchBookIllustrations = async () => {
+    setLoadingArtworks(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const res = await fetch(`${apiUrl}/api/book-illustrations`, {
+        headers: { ...getAuthHeaders() },
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setBookIllustrations(data);
+        setHasBookOrderChanged(false);
+      }
+    } catch (err) {
+      console.error('Error fetching book illustrations:', err);
+    } finally {
+      setLoadingArtworks(false);
+    }
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
@@ -345,7 +420,7 @@ export default function AdminPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (activeTab === 'exhibition') {
+    if (activeTab === 'exhibition' || activeTab === 'book') {
       if (!editId && imageFiles.length === 0 && existingImages.length === 0) {
         setSubmitError('Please upload at least one image.');
         return;
@@ -363,29 +438,35 @@ export default function AdminPage() {
 
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('medium', medium);
-    formData.append('dimensions', dimensions);
+    if (activeTab !== 'book') {
+      formData.append('medium', medium);
+      formData.append('dimensions', dimensions);
+    }
     
     imageFiles.forEach(file => {
-      if (activeTab === 'exhibition') {
+      if (activeTab === 'exhibition' || activeTab === 'book') {
         formData.append('images', file);
       } else {
         formData.append('image', file);
       }
     });
 
-    if (activeTab === 'exhibition') {
+    if (activeTab === 'exhibition' || activeTab === 'book') {
       existingImages.forEach(img => {
         formData.append('existingImages', img);
       });
     }
 
     const isExhibition = activeTab === 'exhibition';
+    const isBook = activeTab === 'book';
     if (isExhibition) {
       formData.append('year', year);
       formData.append('aspect', aspect);
       formData.append('description', description);
       formData.append('isSold', String(isSold));
+    } else if (isBook) {
+      formData.append('description', description);
+      formData.append('link', bookLink);
     } else {
       formData.append('artist', artist);
       formData.append('mentorshipYear', mentorshipYear);
@@ -395,7 +476,7 @@ export default function AdminPage() {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
       const method = editId ? 'PUT' : 'POST';
-      const baseRoute = isExhibition ? 'artworks' : 'student-works';
+      const baseRoute = isExhibition ? 'artworks' : (isBook ? 'book-illustrations' : 'student-works');
       const endpoint = editId ? `${apiUrl}/api/${baseRoute}/${editId}` : `${apiUrl}/api/${baseRoute}`;
 
       const headers: Record<string, string> = {
@@ -417,13 +498,15 @@ export default function AdminPage() {
         // Refresh list
         if (isExhibition) {
           fetchArtworks();
+        } else if (isBook) {
+          fetchBookIllustrations();
         } else {
           fetchStudentWorks();
         }
         // Hide success message after 4s
         setTimeout(() => setSubmitSuccess(false), 4000);
       } else {
-        let errMsg = `Failed to ${editId ? 'update' : 'upload'} ${isExhibition ? 'artwork' : 'student work'}`;
+        let errMsg = `Failed to ${editId ? 'update' : 'upload'} ${isExhibition ? 'artwork' : (isBook ? 'book illustration' : 'student work')}`;
         try {
           const errData = await res.json();
           errMsg = errData.error || errMsg;
@@ -448,7 +531,8 @@ export default function AdminPage() {
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
     const isExhibition = activeTab === 'exhibition';
-    const baseRoute = isExhibition ? 'artworks' : 'student-works';
+    const isBook = activeTab === 'book';
+    const baseRoute = isExhibition ? 'artworks' : (isBook ? 'book-illustrations' : 'student-works');
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
       const res = await fetch(`${apiUrl}/api/${baseRoute}/${id}`, {
@@ -464,12 +548,14 @@ export default function AdminPage() {
       if (res.ok) {
         if (isExhibition) {
           setArtworks(artworks.filter(art => art._id !== id && String(art.id) !== id));
+        } else if (isBook) {
+          setBookIllustrations(bookIllustrations.filter(b => b._id !== id && String(b.id) !== id));
         } else {
           setStudentWorks(studentWorks.filter(w => w._id !== id && String(w.id) !== id));
         }
         setDeleteId(null);
       } else {
-        alert(`Could not delete ${isExhibition ? 'artwork' : 'student work'}`);
+        alert(`Could not delete ${isExhibition ? 'artwork' : (isBook ? 'book illustration' : 'student work')}`);
       }
     } catch (err) {
       console.error(err);
@@ -488,7 +574,7 @@ export default function AdminPage() {
     setImagePreviews([]);
     setExistingImages([]);
 
-    if (activeTab === 'exhibition') {
+    if (activeTab === 'exhibition' || activeTab === 'book') {
       const artImages = art.images && art.images.length > 0 ? art.images : [art.image];
       setExistingImages(artImages.filter(Boolean));
     } else {
@@ -502,6 +588,9 @@ export default function AdminPage() {
       setAspect(art.aspect || 'aspect-square');
       setDescription(art.description || '');
       setIsSold(art.isSold || false);
+    } else if (activeTab === 'book') {
+      setDescription(art.description || '');
+      setBookLink(art.link || '');
     } else {
       setArtist(art.artist || '');
       setMentorshipYear(art.mentorshipYear || 'Mentorship Class of 2025');
@@ -529,6 +618,7 @@ export default function AdminPage() {
     setArtist('');
     setMentorshipYear('Mentorship Class of 2025');
     setIsSold(false);
+    setBookLink('');
   };
 
   return (
@@ -650,6 +740,7 @@ export default function AdminPage() {
                   handleCancelEdit();
                   setHasOrderChanged(false);
                   setHasStudentOrderChanged(false);
+                  setHasBookOrderChanged(false);
                 }}
                 className={`text-xs uppercase tracking-[0.25em] px-6 py-3 font-sans transition-all duration-300 relative cursor-pointer ${
                   activeTab === 'student' ? 'text-wine font-medium' : 'text-charcoal/50 hover:text-charcoal'
@@ -657,6 +748,27 @@ export default function AdminPage() {
               >
                 Manage Student Work
                 {activeTab === 'student' && (
+                  <motion.div
+                    layoutId="adminActiveTabUnderline"
+                    className="absolute left-6 right-6 bottom-0 h-[2px] bg-wine"
+                    transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+                  />
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('book');
+                  handleCancelEdit();
+                  setHasOrderChanged(false);
+                  setHasStudentOrderChanged(false);
+                  setHasBookOrderChanged(false);
+                }}
+                className={`text-xs uppercase tracking-[0.25em] px-6 py-3 font-sans transition-all duration-300 relative cursor-pointer ${
+                  activeTab === 'book' ? 'text-wine font-medium' : 'text-charcoal/50 hover:text-charcoal'
+                }`}
+              >
+                Manage Book Illustrations
+                {activeTab === 'book' && (
                   <motion.div
                     layoutId="adminActiveTabUnderline"
                     className="absolute left-6 right-6 bottom-0 h-[2px] bg-wine"
@@ -678,16 +790,16 @@ export default function AdminPage() {
                   <div>
                     <h2 className="font-serif text-xl text-charcoal">
                       {editId 
-                        ? (activeTab === 'exhibition' ? 'Edit Artwork' : 'Edit Student Work') 
-                        : (activeTab === 'exhibition' ? 'Add New Artwork' : 'Add Student Work')
+                        ? (activeTab === 'exhibition' ? 'Edit Artwork' : (activeTab === 'book' ? 'Edit Book Illustration' : 'Edit Student Work')) 
+                        : (activeTab === 'exhibition' ? 'Add New Artwork' : (activeTab === 'book' ? 'Add Book Illustration' : 'Add Student Work'))
                       }
                     </h2>
                     <p className="text-xs font-sans text-charcoal/50">
                       {editId 
-                        ? 'Modify details of your previously uploaded drawing.' 
+                        ? (activeTab === 'book' ? 'Modify details of your book illustration.' : 'Modify details of your previously uploaded drawing.') 
                         : (activeTab === 'exhibition' 
                             ? 'Upload images of your drawings to the live gallery.' 
-                            : 'Add curated masterpieces created by your students.'
+                            : (activeTab === 'book' ? 'Upload multiple illustrations and a description for a book.' : 'Add curated masterpieces created by your students.')
                           )
                       }
                     </p>
@@ -698,10 +810,10 @@ export default function AdminPage() {
                   {/* File Upload Zone */}
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-2 font-sans">
-                      {activeTab === 'exhibition' ? 'Artwork Images' : 'Artwork Image File'}
+                      {activeTab === 'exhibition' ? 'Artwork Images' : (activeTab === 'book' ? 'Book Illustrations (Cover is Primary)' : 'Artwork Image File')}
                     </label>
                     <div className="relative border-2 border-dashed border-charcoal/15 hover:border-wine/40 rounded-xl p-6 transition-colors duration-300 bg-transparent flex flex-col items-center justify-center min-h-[200px]">
-                      {activeTab === 'exhibition' ? (
+                      {activeTab === 'exhibition' || activeTab === 'book' ? (
                         <div className="w-full">
                           {(existingImages.length > 0 || imagePreviews.length > 0) && (
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6 w-full">
@@ -839,41 +951,59 @@ export default function AdminPage() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-1.5 font-sans">
-                        Medium / Materials
-                      </label>
-                      <select
-                        value={medium}
-                        onChange={(e) => setMedium(e.target.value)}
-                        required
-                        className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-transparent focus:outline-none focus:border-wine transition-colors font-sans text-sm text-charcoal"
-                      >
-                        <option value="" disabled className="text-charcoal/50">Select Medium</option>
-                        <option value="Acrylics" className="text-charcoal bg-[#F7F2EB]">Acrylics</option>
-                        <option value="Oils" className="text-charcoal bg-[#F7F2EB]">Oils</option>
-                        <option value="Pencil Shading" className="text-charcoal bg-[#F7F2EB]">Pencil Shading</option>
-                        <option value="Charcoal" className="text-charcoal bg-[#F7F2EB]">Charcoal</option>
-                        <option value="Pencil Colour" className="text-charcoal bg-[#F7F2EB]">Pencil Colour</option>
-                      </select>
-                    </div>
-                    {activeTab === 'exhibition' && (
+                  {activeTab !== 'book' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-1.5 font-sans">
-                          Dimensions
+                          Medium / Materials
                         </label>
-                        <input
-                          type="text"
-                          value={dimensions}
-                          onChange={(e) => setDimensions(e.target.value)}
-                          placeholder="e.g. 40 × 50 inches"
-                          required={activeTab === 'exhibition'}
-                          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-transparent focus:outline-none focus:border-wine transition-colors font-sans text-sm"
-                        />
+                        <select
+                          value={medium}
+                          onChange={(e) => setMedium(e.target.value)}
+                          required={activeTab !== 'book'}
+                          className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-transparent focus:outline-none focus:border-wine transition-colors font-sans text-sm text-charcoal"
+                        >
+                          <option value="" disabled className="text-charcoal/50">Select Medium</option>
+                          <option value="Acrylics" className="text-charcoal bg-[#F7F2EB]">Acrylics</option>
+                          <option value="Oils" className="text-charcoal bg-[#F7F2EB]">Oils</option>
+                          <option value="Pencil Shading" className="text-charcoal bg-[#F7F2EB]">Pencil Shading</option>
+                          <option value="Charcoal" className="text-charcoal bg-[#F7F2EB]">Charcoal</option>
+                          <option value="Pencil Colour" className="text-charcoal bg-[#F7F2EB]">Pencil Colour</option>
+                        </select>
                       </div>
-                    )}
-                  </div>
+                      {activeTab === 'exhibition' && (
+                        <div>
+                          <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-1.5 font-sans">
+                            Dimensions
+                          </label>
+                          <input
+                            type="text"
+                            value={dimensions}
+                            onChange={(e) => setDimensions(e.target.value)}
+                            placeholder="e.g. 40 × 50 inches"
+                            required={activeTab === 'exhibition'}
+                            className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-transparent focus:outline-none focus:border-wine transition-colors font-sans text-sm"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'book' && (
+                    <div>
+                      <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-1.5 font-sans">
+                        Book Link / URL
+                      </label>
+                      <input
+                        type="url"
+                        value={bookLink}
+                        onChange={(e) => setBookLink(e.target.value)}
+                        placeholder="https://example.com/book"
+                        className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-transparent focus:outline-none focus:border-wine transition-colors font-sans text-sm"
+                      />
+                    </div>
+                  )}
+
                    {/* Framing Layout Aspect Ratio */}
                   {activeTab === 'exhibition' && (
                     <div>
@@ -934,12 +1064,13 @@ export default function AdminPage() {
 
                   <div>
                     <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-1.5 font-sans">
-                      {activeTab === 'exhibition' ? 'Description / Story' : 'Student Concept / Description'}
+                    <label className="block text-xs uppercase tracking-wider text-charcoal/60 font-medium mb-1.5 font-sans">
+                      {activeTab === 'exhibition' ? 'Description / Story' : (activeTab === 'book' ? 'Book Description' : 'Student Concept / Description')}
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder={activeTab === 'exhibition' ? 'Write a brief story or artistic concept behind this drawing...' : 'Describe the student\'s process, mentorship focus, or artwork concept...'}
+                      placeholder={activeTab === 'exhibition' ? 'Write a brief story or artistic concept behind this drawing...' : (activeTab === 'book' ? 'Write a description for the book...' : 'Describe the student\'s process, mentorship focus, or artwork concept...')}
                       rows={4}
                       required
                       className="w-full px-4 py-2.5 rounded-xl border border-charcoal/15 bg-transparent focus:outline-none focus:border-wine transition-colors font-sans text-sm resize-none"
@@ -953,7 +1084,9 @@ export default function AdminPage() {
                       <span className="font-sans">
                         {activeTab === 'exhibition' 
                           ? 'Artwork saved successfully! It is now live in the exhibition gallery.'
-                          : 'Student work saved successfully! It is now live in the mentorship section.'
+                          : (activeTab === 'book' 
+                              ? 'Book illustration saved successfully! It is now live.' 
+                              : 'Student work saved successfully! It is now live in the mentorship section.')
                         }
                       </span>
                     </div>
@@ -989,7 +1122,9 @@ export default function AdminPage() {
                           <span>
                             {editId 
                               ? 'Save Changes' 
-                              : (activeTab === 'exhibition' ? 'Publish drawing to website' : 'Publish student work to website')
+                              : (activeTab === 'exhibition' 
+                                  ? 'Publish drawing to website' 
+                                  : (activeTab === 'book' ? 'Publish book to website' : 'Publish student work to website'))
                             }
                           </span>
                         </>
@@ -1006,12 +1141,12 @@ export default function AdminPage() {
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h3 className="font-serif text-lg text-charcoal mb-2">
-                      {activeTab === 'exhibition' ? `Exhibition Catalog (${artworks.length})` : `Mentorship Works (${studentWorks.length})`}
+                      {activeTab === 'exhibition' ? `Exhibition Catalog (${artworks.length})` : (activeTab === 'book' ? `Book Illustrations (${bookIllustrations.length})` : `Mentorship Works (${studentWorks.length})`)}
                     </h3>
                     <p className="text-xs font-sans text-charcoal/50">
                       {activeTab === 'exhibition' 
                         ? 'Manage live drawing assets. Drag to reorder. Delete items instantly.' 
-                        : 'Manage live student portfolio items. Delete items instantly.'}
+                        : (activeTab === 'book' ? 'Manage book illustrations. Drag to reorder.' : 'Manage live student portfolio items. Delete items instantly.')}
                     </p>
                   </div>
                   
@@ -1048,6 +1183,24 @@ export default function AdminPage() {
                       <span>Saved</span>
                     </div>
                   )}
+
+                  {activeTab === 'book' && hasBookOrderChanged && (
+                    <button
+                      onClick={handleSaveBookOrder}
+                      disabled={isSavingBookOrder}
+                      className="shrink-0 flex items-center space-x-2 bg-wine hover:bg-wine/90 text-[#F7F2EC] px-4 py-2 rounded-xl text-xs uppercase tracking-widest font-semibold transition-all shadow-md cursor-pointer"
+                    >
+                      {isSavingBookOrder ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                      <span>Save Order</span>
+                    </button>
+                  )}
+                  {activeTab === 'book' && bookOrderSaveSuccess && (
+                    <div className="shrink-0 flex items-center space-x-1.5 text-green-700 bg-green-50 px-3 py-2 rounded-xl text-xs uppercase tracking-wider font-semibold border border-green-150">
+                      <CheckCircle2 size={14} />
+                      <span>Saved</span>
+                    </div>
+                  )}
+
                 </div>
 
                 {loadingArtworks ? (
@@ -1055,11 +1208,11 @@ export default function AdminPage() {
                     <Loader2 className="w-8 h-8 text-wine animate-spin" />
                     <p className="text-xs uppercase tracking-widest text-charcoal/40 font-sans">Loading catalog...</p>
                   </div>
-                ) : (activeTab === 'exhibition' ? artworks.length === 0 : studentWorks.length === 0) ? (
+                ) : (activeTab === 'exhibition' ? artworks.length === 0 : (activeTab === 'book' ? bookIllustrations.length === 0 : studentWorks.length === 0)) ? (
                   <div className="flex flex-col items-center justify-center flex-grow py-20 text-center border border-dashed border-charcoal/10 rounded-xl bg-charcoal/5 p-6">
                     <FileImage className="w-12 h-12 text-charcoal/20 mb-3" />
                     <p className="font-serif text-charcoal/40 font-light text-base mb-1">
-                      {activeTab === 'exhibition' ? 'No Drawings Registered' : 'No Student Works Registered'}
+                      {activeTab === 'exhibition' ? 'No Drawings Registered' : (activeTab === 'book' ? 'No Book Illustrations Registered' : 'No Student Works Registered')}
                     </p>
                     <p className="font-sans text-xs text-charcoal/40">Seeded data will load as soon as server connection is live.</p>
                   </div>
@@ -1069,6 +1222,23 @@ export default function AdminPage() {
                       <Reorder.Group axis="y" values={artworks} onReorder={handleReorder} className="space-y-4">
                         {artworks.map((art, index) => (
                           <DraggableArtworkRow
+                            key={art._id || String(art.id)}
+                            art={art}
+                            index={index}
+                            getImageUrl={getImageUrl}
+                            deleteId={deleteId}
+                            isDeleting={isDeleting}
+                            editId={editId}
+                            handleDelete={handleDelete}
+                            setDeleteId={setDeleteId}
+                            handleStartEdit={handleStartEdit}
+                          />
+                        ))}
+                      </Reorder.Group>
+                    ) : activeTab === 'book' ? (
+                      <Reorder.Group axis="y" values={bookIllustrations} onReorder={handleReorderBook} className="space-y-4">
+                        {bookIllustrations.map((art, index) => (
+                          <DraggableBookIllustrationRow
                             key={art._id || String(art.id)}
                             art={art}
                             index={index}
@@ -1240,6 +1410,85 @@ const DraggableStudentWorkRow = ({ art, index, getImageUrl, deleteId, isDeleting
         <p className="text-[10px] uppercase tracking-widest text-wine/75 font-semibold mt-1 flex items-center gap-2">
           <span>{art.mentorshipYear}</span>
         </p>
+      </div>
+
+      {/* Action: Delete */}
+      <div className="shrink-0">
+        {deleteId === art._id || deleteId === String(art.id) ? (
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => handleDelete(art._id || String(art.id))}
+              disabled={isDeleting}
+              className="text-xs text-wine hover:underline font-bold uppercase tracking-widest cursor-pointer"
+            >
+              Confirm
+            </button>
+            <button
+              onClick={() => setDeleteId(null)}
+              className="text-xs text-charcoal/50 hover:underline uppercase tracking-widest cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => handleStartEdit(art)}
+              className={`p-2 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer ${
+                editId === art._id || editId === String(art.id)
+                  ? 'text-wine bg-wine/5'
+                  : 'text-charcoal/30'
+              }`}
+              aria-label={`Edit ${art.title}`}
+            >
+              <Pencil size={16} />
+            </button>
+            <button
+              onClick={() => setDeleteId(art._id || String(art.id))}
+              className="p-2 text-charcoal/30 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer"
+              aria-label={`Delete ${art.title}`}
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        )}
+      </div>
+    </Reorder.Item>
+  );
+};
+
+const DraggableBookIllustrationRow = ({ art, index, getImageUrl, deleteId, isDeleting, editId, handleDelete, setDeleteId, handleStartEdit }: any) => {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      value={art}
+      dragListener={false}
+      dragControls={controls}
+      className="flex items-center space-x-4 p-3 rounded-xl hover:bg-wine/5 border border-charcoal/5 bg-[#FAF8F5] transition-colors group relative"
+    >
+      {/* Drag Handle */}
+      <div 
+        onPointerDown={(e) => controls.start(e)}
+        className="text-charcoal/40 hover:text-wine bg-charcoal/5 hover:bg-wine/10 cursor-grab active:cursor-grabbing flex items-center justify-center p-3 sm:p-4 rounded-lg touch-none"
+      >
+        <GripVertical size={20} />
+        <span className="text-[10px] font-bold font-sans ml-2 text-charcoal/60 w-3 text-center">{index + 1}</span>
+      </div>
+
+      {/* Thumbnail */}
+      <div className="relative w-16 h-16 bg-[#EADFD0] overflow-hidden border border-charcoal/10 shrink-0 pointer-events-none">
+        <Image
+          src={getImageUrl(art.image)}
+          alt={art.title}
+          fill
+          className="object-cover"
+        />
+      </div>
+
+      {/* Details */}
+      <div className="flex-grow min-w-0 pointer-events-none">
+        <h4 className="font-serif text-sm text-charcoal font-medium truncate">{art.title}</h4>
       </div>
 
       {/* Action: Delete */}

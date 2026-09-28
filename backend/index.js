@@ -13,6 +13,7 @@ const { Resend } = require('resend');
 
 const Artwork = require('./models/Artwork');
 const StudentWork = require('./models/StudentWork');
+const BookIllustration = require('./models/BookIllustration');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -797,6 +798,175 @@ app.delete('/api/student-works/:id', authenticateAdmin, async (req, res) => {
 // -------------------------------------------------------------
 // Contact Form Endpoint
 // -------------------------------------------------------------
+
+// -------------------------------------------------------------
+// Book Illustrations Endpoints
+// -------------------------------------------------------------
+
+// Fetch all book illustrations
+app.get('/api/book-illustrations', async (req, res) => {
+  try {
+    const works = await BookIllustration.find().sort({ displayOrder: 1, createdAt: -1 });
+    res.json(works);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error fetching book illustrations' });
+  }
+});
+
+// Reorder book illustrations
+app.put('/api/book-illustrations/reorder', authenticateAdmin, async (req, res) => {
+  try {
+    const { orderUpdates } = req.body;
+    
+    if (!Array.isArray(orderUpdates)) {
+      return res.status(400).json({ error: 'orderUpdates must be an array' });
+    }
+
+    const updatePromises = orderUpdates.map((update) => 
+      BookIllustration.findByIdAndUpdate(update._id, { displayOrder: update.displayOrder })
+    );
+
+    await Promise.all(updatePromises);
+    res.json({ message: 'Order updated successfully' });
+  } catch (err) {
+    console.error('Error reordering book illustrations:', err);
+    res.status(500).json({ error: 'Server error reordering book illustrations' });
+  }
+});
+
+// Add a new book illustration
+app.post('/api/book-illustrations', authenticateAdmin, handleMultipleUpload, async (req, res) => {
+  try {
+    const { title, description, link } = req.body;
+    
+    if (!title || !description) {
+      return res.status(400).json({ error: 'Title and description are required' });
+    }
+
+    // Identify images
+    const images = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        if (isCloudinaryConfigured && file.path.includes('cloudinary')) {
+          images.push(file.path);
+        } else {
+          images.push(`/uploads/${file.filename}`);
+        }
+      });
+    }
+
+    if (images.length === 0) {
+      return res.status(400).json({ error: 'At least one image is required' });
+    }
+
+    const primaryImage = images[0];
+    
+    const lastItem = await BookIllustration.findOne().sort({ displayOrder: -1 });
+    const newDisplayOrder = lastItem ? lastItem.displayOrder + 1 : 1;
+
+    const newBook = new BookIllustration({
+      title,
+      description,
+      link: link || '',
+      image: primaryImage,
+      images: images,
+      displayOrder: newDisplayOrder
+    });
+
+    await newBook.save();
+    res.status(201).json(newBook);
+  } catch (err) {
+    console.error('Error adding book illustration:', err);
+    res.status(500).json({ error: 'Server error adding book illustration' });
+  }
+});
+
+// Update a book illustration
+app.put('/api/book-illustrations/:id', authenticateAdmin, handleMultipleUpload, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, link } = req.body;
+    
+    let existingImages = [];
+    if (req.body.existingImages) {
+      try {
+        existingImages = JSON.parse(req.body.existingImages);
+      } catch (e) {
+        if (typeof req.body.existingImages === 'string') {
+          existingImages = [req.body.existingImages];
+        }
+      }
+    }
+
+    const newImages = [];
+    if (req.files && req.files.length > 0) {
+      req.files.forEach(file => {
+        if (isCloudinaryConfigured && file.path.includes('cloudinary')) {
+          newImages.push(file.path);
+        } else {
+          newImages.push(`/uploads/${file.filename}`);
+        }
+      });
+    }
+
+    const allImages = [...existingImages, ...newImages];
+
+    if (allImages.length === 0) {
+      return res.status(400).json({ error: 'At least one image is required' });
+    }
+
+    const primaryImage = allImages[0];
+
+    const updatedBook = await BookIllustration.findByIdAndUpdate(
+      id,
+      {
+        title,
+        description,
+        link: link || '',
+        image: primaryImage,
+        images: allImages,
+        updatedAt: Date.now()
+      },
+      { new: true }
+    );
+
+    if (!updatedBook) {
+      return res.status(404).json({ error: 'Book illustration not found' });
+    }
+
+    res.json(updatedBook);
+  } catch (err) {
+    console.error('Error updating book illustration:', err);
+    res.status(500).json({ error: 'Server error updating book illustration' });
+  }
+});
+
+// Delete a book illustration
+app.delete('/api/book-illustrations/:id', authenticateAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const book = await BookIllustration.findById(id);
+    if (!book) {
+      return res.status(404).json({ error: 'Book illustration not found' });
+    }
+
+    book.images.forEach(img => {
+      if (img.startsWith('/uploads/')) {
+        const fileName = img.split('/').pop();
+        const filePath = path.join(uploadsDir, fileName);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
+    });
+
+    await BookIllustration.findByIdAndDelete(id);
+    res.json({ message: 'Book illustration deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting book illustration:', err);
+    res.status(500).json({ error: 'Server error deleting book illustration' });
+  }
+});
 
 // Email format validator — RFC 5321 / practical subset
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
