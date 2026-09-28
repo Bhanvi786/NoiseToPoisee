@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import Image from 'next/image';
 import { 
   Lock, 
@@ -14,7 +14,9 @@ import {
   ArrowLeft,
   Loader2,
   FileImage,
-  Pencil
+  Pencil,
+  GripVertical,
+  Save
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -93,6 +95,11 @@ export default function AdminPage() {
   const [loadingArtworks, setLoadingArtworks] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Reorder state
+  const [hasOrderChanged, setHasOrderChanged] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+  const [orderSaveSuccess, setOrderSaveSuccess] = useState(false);
 
   // Check backend for valid session token
   useEffect(() => {
@@ -191,11 +198,55 @@ export default function AdminPage() {
       if (res.ok) {
         const data = await res.json();
         setArtworks(data);
+        setHasOrderChanged(false);
       }
     } catch (err) {
       console.error('Error fetching artworks:', err);
     } finally {
       setLoadingArtworks(false);
+    }
+  };
+
+  const handleReorder = (newOrder: ArtworkType[]) => {
+    setArtworks(newOrder);
+    setHasOrderChanged(true);
+  };
+
+  const handleSaveOrder = async () => {
+    setIsSavingOrder(true);
+    setOrderSaveSuccess(false);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+      const orderUpdates = artworks.map((art, index) => ({
+        _id: art._id || String(art.id),
+        displayOrder: index + 1
+      }));
+      
+      const res = await fetch(`${apiUrl}/api/artworks/reorder`, {
+        method: 'PUT',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
+          'X-Admin-Request': 'true'
+        },
+        body: JSON.stringify({ orderUpdates }),
+        credentials: 'include'
+      });
+      
+      if (res.ok) {
+        setHasOrderChanged(false);
+        setOrderSaveSuccess(true);
+        setTimeout(() => setOrderSaveSuccess(false), 3000);
+      } else {
+        alert('Failed to save the new order. Please try again.');
+        fetchArtworks(); // Revert to saved order
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while saving order.');
+      fetchArtworks(); // Revert to saved order
+    } finally {
+      setIsSavingOrder(false);
     }
   };
 
@@ -899,12 +950,35 @@ export default function AdminPage() {
             {/* Right: Existing Catalog View (5 Columns) */}
             <div className="lg:col-span-5 space-y-6">
               <div className="bg-[#FAF8F5] border border-wine/10 p-8 rounded-2xl shadow-md h-full flex flex-col">
-                <h3 className="font-serif text-lg text-charcoal mb-2">
-                  {activeTab === 'exhibition' ? `Exhibition Catalog (${artworks.length})` : `Mentorship Works (${studentWorks.length})`}
-                </h3>
-                <p className="text-xs font-sans text-charcoal/50 mb-6">
-                  {activeTab === 'exhibition' ? 'Manage live drawing assets. Delete items instantly.' : 'Manage live student portfolio items. Delete items instantly.'}
-                </p>
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="font-serif text-lg text-charcoal mb-2">
+                      {activeTab === 'exhibition' ? `Exhibition Catalog (${artworks.length})` : `Mentorship Works (${studentWorks.length})`}
+                    </h3>
+                    <p className="text-xs font-sans text-charcoal/50">
+                      {activeTab === 'exhibition' 
+                        ? 'Manage live drawing assets. Drag to reorder. Delete items instantly.' 
+                        : 'Manage live student portfolio items. Delete items instantly.'}
+                    </p>
+                  </div>
+                  
+                  {activeTab === 'exhibition' && hasOrderChanged && (
+                    <button
+                      onClick={handleSaveOrder}
+                      disabled={isSavingOrder}
+                      className="shrink-0 flex items-center space-x-2 bg-wine hover:bg-wine/90 text-[#F7F2EC] px-4 py-2 rounded-xl text-xs uppercase tracking-widest font-semibold transition-all shadow-md cursor-pointer"
+                    >
+                      {isSavingOrder ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                      <span>Save Order</span>
+                    </button>
+                  )}
+                  {activeTab === 'exhibition' && orderSaveSuccess && (
+                    <div className="shrink-0 flex items-center space-x-1.5 text-green-700 bg-green-50 px-3 py-2 rounded-xl text-xs uppercase tracking-wider font-semibold border border-green-150">
+                      <CheckCircle2 size={14} />
+                      <span>Saved</span>
+                    </div>
+                  )}
+                </div>
 
                 {loadingArtworks ? (
                   <div className="flex flex-col items-center justify-center flex-grow py-20 space-y-3">
@@ -920,81 +994,162 @@ export default function AdminPage() {
                     <p className="font-sans text-xs text-charcoal/40">Seeded data will load as soon as server connection is live.</p>
                   </div>
                 ) : (
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-                    {(activeTab === 'exhibition' ? artworks : studentWorks).map((art) => (
-                      <div 
-                        key={art._id || art.id}
-                        className="flex items-center space-x-4 p-3 rounded-xl hover:bg-wine/5 border border-charcoal/5 bg-transparent transition-all group"
-                      >
-                        {/* Thumbnail */}
-                        <div className="relative w-16 h-16 bg-[#EADFD0] overflow-hidden border border-charcoal/10 shrink-0">
-                          <Image
-                            src={getImageUrl(art.image)}
-                            alt={art.title}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
+                  <div className="flex-grow overflow-y-auto pr-2 min-h-0 space-y-4">
+                    {activeTab === 'exhibition' ? (
+                      <Reorder.Group axis="y" values={artworks} onReorder={handleReorder} className="space-y-4">
+                        {artworks.map((art, index) => (
+                          <Reorder.Item
+                            key={art._id || String(art.id)}
+                            value={art}
+                            className="flex items-center space-x-4 p-3 rounded-xl hover:bg-wine/5 border border-charcoal/5 bg-[#FAF8F5] transition-colors group cursor-grab active:cursor-grabbing relative"
+                          >
+                            {/* Drag Handle */}
+                            <div className="text-charcoal/20 group-hover:text-wine/50 cursor-grab active:cursor-grabbing flex items-center justify-center">
+                              <GripVertical size={16} />
+                              <span className="text-[10px] font-bold font-sans ml-1 text-charcoal/40 w-3 text-center">{index + 1}</span>
+                            </div>
 
-                        {/* Details */}
-                        <div className="flex-grow min-w-0">
-                          <h4 className="font-serif text-sm text-charcoal font-medium truncate">{art.title}</h4>
-                          <p className="text-xs font-sans text-charcoal/60 truncate mt-0.5">
-                            {activeTab === 'exhibition' ? art.medium : (art.artist ? `${art.artist} • ${art.medium}` : art.medium)}
-                          </p>
-                          <p className="text-[10px] uppercase tracking-widest text-wine/75 font-semibold mt-1 flex items-center gap-2">
-                            <span>{activeTab === 'exhibition' ? art.year : art.mentorshipYear}</span>
-                            {activeTab === 'exhibition' && art.isSold && (
-                              <span className="bg-wine/10 text-wine text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
-                                Sold
-                              </span>
+                            {/* Thumbnail */}
+                            <div className="relative w-16 h-16 bg-[#EADFD0] overflow-hidden border border-charcoal/10 shrink-0 pointer-events-none">
+                              <Image
+                                src={getImageUrl(art.image)}
+                                alt={art.title}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+
+                            {/* Details */}
+                            <div className="flex-grow min-w-0">
+                              <h4 className="font-serif text-sm text-charcoal font-medium truncate">{art.title}</h4>
+                              <p className="text-xs font-sans text-charcoal/60 truncate mt-0.5">
+                                {art.medium}
+                              </p>
+                              <p className="text-[10px] uppercase tracking-widest text-wine/75 font-semibold mt-1 flex items-center gap-2">
+                                <span>{art.year}</span>
+                                {art.isSold && (
+                                  <span className="bg-wine/10 text-wine text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                                    Sold
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+
+                            {/* Action: Delete & Edit */}
+                            <div className="shrink-0">
+                              {deleteId === art._id || deleteId === String(art.id) ? (
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => handleDelete(art._id || String(art.id))}
+                                    disabled={isDeleting}
+                                    className="text-xs text-wine hover:underline font-bold uppercase tracking-widest cursor-pointer"
+                                  >
+                                    Confirm
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteId(null)}
+                                    className="text-xs text-charcoal/50 hover:underline uppercase tracking-widest cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-1">
+                                  <button
+                                    onClick={() => handleStartEdit(art)}
+                                    className={`p-2 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer ${
+                                      editId === art._id || editId === String(art.id)
+                                        ? 'text-wine bg-wine/5'
+                                        : 'text-charcoal/30'
+                                    }`}
+                                    aria-label={`Edit ${art.title}`}
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button
+                                    onClick={() => setDeleteId(art._id || String(art.id))}
+                                    className="p-2 text-charcoal/30 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer"
+                                    aria-label={`Delete ${art.title}`}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </Reorder.Item>
+                        ))}
+                      </Reorder.Group>
+                    ) : (
+                      studentWorks.map((art) => (
+                        <div 
+                          key={art._id || art.id}
+                          className="flex items-center space-x-4 p-3 rounded-xl hover:bg-wine/5 border border-charcoal/5 bg-transparent transition-all group"
+                        >
+                          {/* Thumbnail */}
+                          <div className="relative w-16 h-16 bg-[#EADFD0] overflow-hidden border border-charcoal/10 shrink-0">
+                            <Image
+                              src={getImageUrl(art.image)}
+                              alt={art.title}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+
+                          {/* Details */}
+                          <div className="flex-grow min-w-0">
+                            <h4 className="font-serif text-sm text-charcoal font-medium truncate">{art.title}</h4>
+                            <p className="text-xs font-sans text-charcoal/60 truncate mt-0.5">
+                              {art.artist ? `${art.artist} • ${art.medium}` : art.medium}
+                            </p>
+                            <p className="text-[10px] uppercase tracking-widest text-wine/75 font-semibold mt-1 flex items-center gap-2">
+                              <span>{art.mentorshipYear}</span>
+                            </p>
+                          </div>
+
+                          {/* Action: Delete */}
+                          <div className="shrink-0">
+                            {deleteId === art._id || deleteId === String(art.id) ? (
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleDelete(art._id || String(art.id))}
+                                  disabled={isDeleting}
+                                  className="text-xs text-wine hover:underline font-bold uppercase tracking-widest cursor-pointer"
+                                >
+                                  Confirm
+                                </button>
+                                <button
+                                  onClick={() => setDeleteId(null)}
+                                  className="text-xs text-charcoal/50 hover:underline uppercase tracking-widest cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center space-x-1">
+                                <button
+                                  onClick={() => handleStartEdit(art)}
+                                  className={`p-2 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer ${
+                                    editId === art._id || editId === String(art.id)
+                                      ? 'text-wine bg-wine/5'
+                                      : 'text-charcoal/30'
+                                  }`}
+                                  aria-label={`Edit ${art.title}`}
+                                >
+                                  <Pencil size={16} />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteId(art._id || String(art.id))}
+                                  className="p-2 text-charcoal/30 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer"
+                                  aria-label={`Delete ${art.title}`}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
                             )}
-                          </p>
+                          </div>
                         </div>
-
-                        {/* Action: Delete */}
-                        <div className="shrink-0">
-                          {deleteId === art._id || deleteId === String(art.id) ? (
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => handleDelete(art._id || String(art.id))}
-                                disabled={isDeleting}
-                                className="text-xs text-wine hover:underline font-bold uppercase tracking-widest cursor-pointer"
-                              >
-                                Confirm
-                              </button>
-                              <button
-                                onClick={() => setDeleteId(null)}
-                                className="text-xs text-charcoal/50 hover:underline uppercase tracking-widest cursor-pointer"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-1">
-                              <button
-                                onClick={() => handleStartEdit(art)}
-                                className={`p-2 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer ${
-                                  editId === art._id || editId === String(art.id)
-                                    ? 'text-wine bg-wine/5'
-                                    : 'text-charcoal/30'
-                                }`}
-                                aria-label={`Edit ${art.title}`}
-                              >
-                                <Pencil size={16} />
-                              </button>
-                              <button
-                                onClick={() => setDeleteId(art._id || String(art.id))}
-                                className="p-2 text-charcoal/30 hover:text-wine bg-transparent hover:bg-wine/5 rounded-lg transition-colors cursor-pointer"
-                                aria-label={`Delete ${art.title}`}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 )}
               </div>

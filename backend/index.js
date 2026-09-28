@@ -283,7 +283,7 @@ app.get('/api/health', (req, res) => {
 // Fetch all artworks
 app.get('/api/artworks', async (req, res) => {
   try {
-    const artworks = await Artwork.find().sort({ createdAt: -1 });
+    const artworks = await Artwork.find().sort({ displayOrder: 1, createdAt: -1 });
     res.json(artworks);
   } catch (err) {
     console.error(err);
@@ -417,6 +417,33 @@ const sanitizeText = (str) => {
   return str.replace(/[<>&"']/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
 };
 
+// Reorder artworks
+app.put('/api/artworks/reorder', authenticateAdmin, async (req, res) => {
+  try {
+    const { orderUpdates } = req.body;
+    
+    if (!Array.isArray(orderUpdates)) {
+      return res.status(400).json({ error: 'orderUpdates must be an array' });
+    }
+
+    const bulkOps = orderUpdates.map((item) => ({
+      updateOne: {
+        filter: { _id: item._id },
+        update: { $set: { displayOrder: item.displayOrder } }
+      }
+    }));
+
+    if (bulkOps.length > 0) {
+      await Artwork.bulkWrite(bulkOps);
+    }
+    
+    res.json({ message: 'Artworks reordered successfully' });
+  } catch (err) {
+    console.error('Error reordering artworks:', err);
+    res.status(500).json({ error: 'Server error reordering artworks' });
+  }
+});
+
 // Add new artwork (Upload images + save to MongoDB)
 app.post('/api/artworks', authenticateAdmin, handleMultipleUpload, async (req, res) => {
   try {
@@ -448,6 +475,10 @@ app.post('/api/artworks', authenticateAdmin, handleMultipleUpload, async (req, r
       }
     }
 
+    // Determine the next displayOrder to put it at the end
+    const maxOrderArtwork = await Artwork.findOne().sort({ displayOrder: -1 });
+    const nextOrder = (maxOrderArtwork && maxOrderArtwork.displayOrder != null) ? maxOrderArtwork.displayOrder + 1 : 1;
+
     const newArtwork = new Artwork({
       title: sanitizeText(title),
       year: sanitizeText(year),
@@ -457,7 +488,8 @@ app.post('/api/artworks', authenticateAdmin, handleMultipleUpload, async (req, r
       images: imageUrls,
       aspect: sanitizeText(aspect) || 'aspect-square',
       description: sanitizeText(description),
-      isSold: isSold === 'true' || isSold === true
+      isSold: isSold === 'true' || isSold === true,
+      displayOrder: nextOrder
     });
 
     await newArtwork.save();

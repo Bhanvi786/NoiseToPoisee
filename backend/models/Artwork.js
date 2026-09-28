@@ -37,6 +37,10 @@ const ArtworkSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  displayOrder: {
+    type: Number,
+    default: 0,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
