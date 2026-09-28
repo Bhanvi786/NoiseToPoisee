@@ -29,7 +29,7 @@ const allowedOrigins = [
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    
+
     const normalizedOrigin = origin.replace(/\/$/, '');
     if (allowedOrigins.includes(normalizedOrigin)) {
       callback(null, true);
@@ -72,9 +72,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/artograph
   });
 
 // Configure Cloudinary if credentials exist
-const isCloudinaryConfigured = 
-  process.env.CLOUDINARY_CLOUD_NAME && 
-  process.env.CLOUDINARY_API_KEY && 
+const isCloudinaryConfigured =
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
   process.env.CLOUDINARY_API_SECRET;
 
 if (isCloudinaryConfigured) {
@@ -101,24 +101,24 @@ const storage = multer.diskStorage({
 
 const fileFilter = (req, file, cb) => {
   const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  
+
   if (allowedMimeTypes.includes(file.mimetype)) {
     // Also perform a basic extension check for defense in depth
     const allowedExts = /jpeg|jpg|png|webp/i;
     const extname = allowedExts.test(path.extname(file.originalname).toLowerCase());
-    
+
     if (extname) {
       return cb(null, true);
     }
   }
-  
+
   cb(new Error('Error: Only images (jpeg, jpg, png, webp) are allowed!'));
 };
 
-const upload = multer({ 
+const upload = multer({
   storage,
   limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit
-  fileFilter 
+  fileFilter
 });
 
 // Middleware to gracefully handle Multer errors (Single file)
@@ -325,15 +325,15 @@ const contactLimiterDaily = rateLimit({
 // Passcode validation check
 app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
   const { passcode } = req.body;
-  
+
   if (!process.env.ADMIN_PASSCODE) {
     console.error('Server configuration error: Admin passcode not set');
     return res.status(500).json({ success: false, error: 'Internal server error' });
   }
-  
+
   if (passcode === process.env.ADMIN_PASSCODE) {
     const token = jwt.sign({ admin: true }, process.env.JWT_SECRET || 'fallback_secret_change_in_production', { expiresIn: '8h' });
-    
+
     // Also set HttpOnly cookie as fallback for same-domain setups
     res.cookie('admin_token', token, {
       httpOnly: true,
@@ -345,7 +345,7 @@ app.post('/api/admin/validate-passcode', loginLimiter, (req, res) => {
     // Return token in body for cross-origin SPA (stored in sessionStorage)
     return res.json({ success: true, message: 'Authenticated successfully', token });
   }
-  
+
   // Generic error for brute force resistance
   return res.status(401).json({ success: false, error: 'Invalid credentials' });
 });
@@ -397,12 +397,12 @@ const authenticateAdmin = (req, res, next) => {
   } else {
     token = req.cookies.admin_token;
   }
-  
+
   if (!token) {
     if (req.file && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
     return res.status(401).json({ error: 'Unauthorized: No session found' });
   }
-  
+
   try {
     jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret_change_in_production');
     next();
@@ -415,14 +415,14 @@ const authenticateAdmin = (req, res, next) => {
 // Simple HTML escaping to prevent XSS
 const sanitizeText = (str) => {
   if (typeof str !== 'string') return str;
-  return str.replace(/[<>&"']/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+  return str.replace(/[<>&"']/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]));
 };
 
 // Reorder artworks
 app.put('/api/artworks/reorder', authenticateAdmin, async (req, res) => {
   try {
     const { orderUpdates } = req.body;
-    
+
     if (!Array.isArray(orderUpdates)) {
       return res.status(400).json({ error: 'orderUpdates must be an array' });
     }
@@ -437,7 +437,7 @@ app.put('/api/artworks/reorder', authenticateAdmin, async (req, res) => {
     if (bulkOps.length > 0) {
       await Artwork.bulkWrite(bulkOps);
     }
-    
+
     res.json({ message: 'Artworks reordered successfully' });
   } catch (err) {
     console.error('Error reordering artworks:', err);
@@ -512,7 +512,7 @@ app.put('/api/artworks/:id', authenticateAdmin, handleMultipleUpload, async (req
     const { id } = req.params;
     const { title, year, medium, dimensions, aspect, description, isSold } = req.body;
     let existingImages = req.body.existingImages || [];
-    
+
     // Ensure existingImages is an array
     if (typeof existingImages === 'string') {
       existingImages = [existingImages];
@@ -563,7 +563,7 @@ app.put('/api/artworks/:id', authenticateAdmin, handleMultipleUpload, async (req
 
     // Combine existing and new images
     const finalImages = [...existingImages, ...newImageUrls];
-    
+
     if (finalImages.length === 0) {
       return res.status(400).json({ error: 'At least one image is required.' });
     }
@@ -571,7 +571,7 @@ app.put('/api/artworks/:id', authenticateAdmin, handleMultipleUpload, async (req
     // Identify images that were removed and delete them locally if applicable
     const oldImages = artwork.images && artwork.images.length > 0 ? artwork.images : [artwork.image];
     const removedImages = oldImages.filter(img => !existingImages.includes(img));
-    
+
     for (const removedImg of removedImages) {
       if (removedImg && removedImg.startsWith('/uploads/')) {
         const oldFileName = removedImg.split('/').pop();
@@ -640,7 +640,7 @@ app.get('/api/student-works', async (req, res) => {
 app.put('/api/student-works/reorder', authenticateAdmin, async (req, res) => {
   try {
     const { orderUpdates } = req.body;
-    
+
     if (!Array.isArray(orderUpdates)) {
       return res.status(400).json({ error: 'orderUpdates must be an array' });
     }
@@ -655,7 +655,7 @@ app.put('/api/student-works/reorder', authenticateAdmin, async (req, res) => {
     if (bulkOps.length > 0) {
       await StudentWork.bulkWrite(bulkOps);
     }
-    
+
     res.json({ message: 'Student works reordered successfully' });
   } catch (err) {
     console.error('Error reordering student works:', err);
@@ -818,12 +818,12 @@ app.get('/api/book-illustrations', async (req, res) => {
 app.put('/api/book-illustrations/reorder', authenticateAdmin, async (req, res) => {
   try {
     const { orderUpdates } = req.body;
-    
+
     if (!Array.isArray(orderUpdates)) {
       return res.status(400).json({ error: 'orderUpdates must be an array' });
     }
 
-    const updatePromises = orderUpdates.map((update) => 
+    const updatePromises = orderUpdates.map((update) =>
       BookIllustration.findByIdAndUpdate(update._id, { displayOrder: update.displayOrder })
     );
 
@@ -839,7 +839,7 @@ app.put('/api/book-illustrations/reorder', authenticateAdmin, async (req, res) =
 app.post('/api/book-illustrations', authenticateAdmin, handleMultipleUpload, async (req, res) => {
   try {
     const { title, description, link } = req.body;
-    
+
     if (!title || !description) {
       return res.status(400).json({ error: 'Title and description are required' });
     }
@@ -861,7 +861,7 @@ app.post('/api/book-illustrations', authenticateAdmin, handleMultipleUpload, asy
     }
 
     const primaryImage = images[0];
-    
+
     const lastItem = await BookIllustration.findOne().sort({ displayOrder: -1 });
     const newDisplayOrder = lastItem ? lastItem.displayOrder + 1 : 1;
 
@@ -887,7 +887,7 @@ app.put('/api/book-illustrations/:id', authenticateAdmin, handleMultipleUpload, 
   try {
     const { id } = req.params;
     const { title, description, link } = req.body;
-    
+
     let existingImages = [];
     if (req.body.existingImages) {
       try {
@@ -946,7 +946,7 @@ app.put('/api/book-illustrations/:id', authenticateAdmin, handleMultipleUpload, 
 app.delete('/api/book-illustrations/:id', authenticateAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const book = await BookIllustration.findById(id);
     if (!book) {
       return res.status(404).json({ error: 'Book illustration not found' });
@@ -990,26 +990,26 @@ app.post('/api/contact', contactLimiterHourly, contactLimiterDaily, async (req, 
   }
 
   // --- Extract and trim fields — never trust raw user input ---
-  const name    = typeof req.body.name    === 'string' ? req.body.name.trim()    : '';
-  const email   = typeof req.body.email   === 'string' ? req.body.email.trim()   : '';
+  const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+  const email = typeof req.body.email === 'string' ? req.body.email.trim() : '';
   const message = typeof req.body.message === 'string' ? req.body.message.trim() : '';
 
   // --- Server-side validation ---
   const errors = [];
 
-  if (!name)                          errors.push('Name is required.');
-  else if (name.length < 2)           errors.push('Name must be at least 2 characters.');
-  else if (name.length > 100)         errors.push('Name must be 100 characters or fewer.');
+  if (!name) errors.push('Name is required.');
+  else if (name.length < 2) errors.push('Name must be at least 2 characters.');
+  else if (name.length > 100) errors.push('Name must be 100 characters or fewer.');
   else if (CONTROL_CHAR_REGEX.test(name)) errors.push('Name contains invalid characters.');
 
-  if (!email)                         errors.push('Email is required.');
-  else if (email.length > 254)        errors.push('Email address is too long.');
-  else if (!EMAIL_REGEX.test(email))  errors.push('Please provide a valid email address.');
+  if (!email) errors.push('Email is required.');
+  else if (email.length > 254) errors.push('Email address is too long.');
+  else if (!EMAIL_REGEX.test(email)) errors.push('Please provide a valid email address.');
   else if (CONTROL_CHAR_REGEX.test(email)) errors.push('Email contains invalid characters.');
 
-  if (!message)                       errors.push('Message is required.');
-  else if (message.length < 10)       errors.push('Message must be at least 10 characters.');
-  else if (message.length > 5000)     errors.push('Message must be 5,000 characters or fewer.');
+  if (!message) errors.push('Message is required.');
+  else if (message.length < 10) errors.push('Message must be at least 10 characters.');
+  else if (message.length > 5000) errors.push('Message must be 5,000 characters or fewer.');
   else if (CONTROL_CHAR_REGEX.test(message)) errors.push('Message contains invalid characters.');
 
   if (errors.length > 0) {
@@ -1030,7 +1030,7 @@ app.post('/api/contact', contactLimiterHourly, contactLimiterDaily, async (req, 
   const resend = new Resend(process.env.RESEND_API_KEY);
 
   // HTML escape helper — prevents XSS/injection in email body
-  const esc = s => s.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+  const esc = s => s.replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 
   // --- Send ---
   try {
@@ -1038,7 +1038,7 @@ app.post('/api/contact', contactLimiterHourly, contactLimiterDaily, async (req, 
     const { data, error } = await resend.emails.send({
       // From: always our verified domain — visitor cannot control this
       from: 'Artograph Contact <noreply@artographbydeepti.com>',
-      to:      ['deeptiarora1881@gmail.com'],
+      to: ['deeptiarora1881@gmail.com'],
       // Reply-To: visitor's validated email so Deepti can reply directly
       replyTo: email,
       subject: `New Inquiry from ${name}`,

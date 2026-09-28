@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { X } from 'lucide-react';
 
 interface BookIllustrationType {
   _id?: string;
@@ -12,6 +13,7 @@ interface BookIllustrationType {
   description: string;
   link: string;
   image: string;
+  images?: string[];
 }
 
 const getImageUrl = (imagePath: string) => {
@@ -46,6 +48,14 @@ const fallbackWorks = [
 export default function BookIllustrationsSection() {
   const [bookIllustrationsList, setBookIllustrationsList] = useState<BookIllustrationType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedBook, setSelectedBook] = useState<BookIllustrationType | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (selectedBook) {
+      setCurrentImageIndex(0);
+    }
+  }, [selectedBook]);
 
   useEffect(() => {
     const fetchBookIllustrations = async () => {
@@ -111,7 +121,8 @@ export default function BookIllustrationsSection() {
               whileInView="visible"
               viewport={{ once: true, margin: '-5% 0px' }}
               variants={fadeUp}
-              className="group bg-[#FDFBF7] rounded-lg overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 border border-charcoal/5 hover:border-wine/10 flex flex-col"
+              className="group bg-[#FDFBF7] rounded-lg overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 border border-charcoal/5 hover:border-wine/10 flex flex-col cursor-pointer"
+              onClick={() => setSelectedBook(work)}
             >
               {/* Image Wrap */}
               <div className="relative aspect-[4/5] sm:aspect-square w-full bg-[#EADFD0] p-4 sm:p-6 lg:p-8 flex items-center justify-center overflow-hidden">
@@ -150,6 +161,7 @@ export default function BookIllustrationsSection() {
                       href={work.link}
                       target="_blank"
                       rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center space-x-1.5 text-[10px] sm:text-xs text-wine hover:text-charcoal uppercase tracking-widest font-medium transition-colors"
                     >
                       <span>View Book</span>
@@ -177,6 +189,104 @@ export default function BookIllustrationsSection() {
         )}
 
       </div>
+
+      {/* Lightbox / Book Detail Modal */}
+      <AnimatePresence>
+        {selectedBook && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/80 backdrop-blur-md p-4 sm:p-8 overflow-y-auto"
+          >
+            {/* Close Area */}
+            <div
+              className="absolute inset-0 cursor-zoom-out"
+              onClick={() => setSelectedBook(null)}
+            />
+
+            <motion.div
+              initial={{ scale: 0.95, y: 30, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 30, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+              className="relative bg-[#F7F2EC] max-w-5xl w-full rounded-lg overflow-y-auto overflow-x-hidden md:overflow-hidden shadow-2xl z-10 flex flex-col md:grid md:grid-cols-12 max-h-[90vh] md:max-h-[85vh] border border-wine/10"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedBook(null)}
+                className="absolute right-4 top-4 z-20 bg-charcoal/80 text-[#F7F2EC] hover:bg-wine p-2 rounded-full transition-colors duration-300 backdrop-blur-sm"
+                aria-label="Close details"
+              >
+                <X size={20} />
+              </button>
+
+              {/* Left Side: Book Image */}
+              <div className="md:col-span-7 relative shrink-0 h-[350px] md:h-[85vh] bg-charcoal/95 flex flex-col items-center justify-center group">
+                <div className="relative w-full h-full flex-grow">
+                  <Image
+                    src={getImageUrl((selectedBook.images && selectedBook.images.length > 0) ? selectedBook.images[currentImageIndex] : selectedBook.image)}
+                    alt={selectedBook.title}
+                    fill
+                    className="object-contain p-4 sm:p-8"
+                    priority
+                  />
+                </div>
+
+                {/* Carousel Controls */}
+                {selectedBook.images && selectedBook.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(prev => prev > 0 ? prev - 1 : selectedBook.images!.length - 1); }}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors z-20"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(prev => prev < selectedBook.images!.length - 1 ? prev + 1 : 0); }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/40 hover:bg-black/70 text-white rounded-full transition-colors z-20"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+                    
+                    {/* Thumbnails indicator */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-20">
+                      {selectedBook.images.map((_, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`w-2 h-2 rounded-full transition-colors cursor-pointer ${idx === currentImageIndex ? 'bg-white' : 'bg-white/40 hover:bg-white/70'}`}
+                          onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Right Side: Book Info */}
+              <div className="md:col-span-5 p-6 sm:p-12 flex flex-col space-y-6 md:space-y-8 bg-[#F7F2EC] paper-texture md:overflow-y-auto md:max-h-[85vh]">
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <span className="text-xs uppercase tracking-[0.25em] text-wine font-medium font-sans">
+                      Book Illustration
+                    </span>
+                    <h2 className="font-serif text-3xl sm:text-4xl font-light text-charcoal leading-tight">
+                      {selectedBook.title}
+                    </h2>
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-wine/10 mt-6">
+                    <span className="text-[10px] uppercase tracking-widest text-wine/60 font-bold font-sans">Description</span>
+                    <p className="text-charcoal/70 font-sans text-sm leading-relaxed font-light whitespace-pre-wrap">
+                      {selectedBook.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
