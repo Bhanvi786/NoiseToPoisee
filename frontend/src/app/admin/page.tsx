@@ -948,8 +948,8 @@ export default function AdminPage() {
             </div>
 
             {/* Right: Existing Catalog View (5 Columns) */}
-            <div className="lg:col-span-5 space-y-6">
-              <div className="bg-[#FAF8F5] border border-wine/10 p-8 rounded-2xl shadow-md h-full flex flex-col">
+            <div className="lg:col-span-5 lg:sticky lg:top-24 max-h-[85vh] lg:max-h-[calc(100vh-8rem)] flex flex-col">
+              <div className="bg-[#FAF8F5] border border-wine/10 p-6 md:p-8 rounded-2xl shadow-md h-full flex flex-col min-h-0">
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <h3 className="font-serif text-lg text-charcoal mb-2">
