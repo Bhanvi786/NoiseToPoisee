@@ -129,7 +129,7 @@ export default function StudentsWorkSection() {
                   alt={work.title}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                  className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                 />
                 <div className="absolute top-2 right-2 sm:top-4 sm:right-4 bg-[#F7F2EB]/90 backdrop-blur-sm px-2 py-1 sm:px-4 sm:py-2 rounded-full border border-wine/10 z-10">
                   <span className="text-[7px] sm:text-[8px] md:text-[10px] uppercase tracking-widest text-wine font-sans font-medium">

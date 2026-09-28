@@ -144,7 +144,7 @@ export default function StudentsGalleryPage() {
                       alt={work.title}
                       fill
                       sizes="(max-width: 1024px) 100vw, 45vw"
-                      className="object-cover transition-transform duration-[2000ms] ease-out group-hover:scale-103"
+                      className="object-contain transition-transform duration-[2000ms] ease-out group-hover:scale-103"
                     />
                     <div className="absolute top-4 right-4 bg-[#F7F2EB]/90 backdrop-blur-sm px-4 py-2 rounded-full border border-wine/10">
                       <span className="text-[10px] uppercase tracking-widest text-wine font-sans font-medium">

@@ -80,7 +80,7 @@ export default function FeaturedPaintings() {
                       alt={item.title}
                       fill
                       sizes="(max-width: 1024px) 100vw, 60vw"
-                      className="object-cover transition-transform duration-[2000ms] ease-out group-hover:scale-105"
+                      className="object-contain transition-transform duration-[2000ms] ease-out group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-charcoal/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 flex items-end p-8">
                       <span className="text-xs uppercase tracking-widest text-white/80 font-sans">

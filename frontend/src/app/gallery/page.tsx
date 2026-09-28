@@ -266,7 +266,7 @@ function GalleryContent() {
                       alt={art.title}
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                      className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-105"
                     />
                     {art.isSold && (
                       <div className="absolute top-4 left-4 bg-wine text-[#F7F2EC] text-[9px] uppercase tracking-widest font-sans font-semibold px-3 py-1.5 rounded-full shadow-md z-20">

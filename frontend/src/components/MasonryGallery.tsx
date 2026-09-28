@@ -178,7 +178,7 @@ export default function MasonryGallery() {
                             alt={art.title}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                            className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
                           />
                           {art.isSold && (
                             <div className="absolute top-4 left-4 bg-wine text-[#F7F2EC] text-[8px] uppercase tracking-widest font-sans font-semibold px-2.5 py-1.5 rounded shadow-md z-20">
@@ -229,7 +229,7 @@ export default function MasonryGallery() {
                             alt={art.title}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                            className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
                           />
                           {art.isSold && (
                             <div className="absolute top-4 left-4 bg-wine text-[#F7F2EC] text-[8px] uppercase tracking-widest font-sans font-semibold px-2.5 py-1.5 rounded shadow-md z-20">
@@ -283,7 +283,7 @@ export default function MasonryGallery() {
                             alt={art.title}
                             fill
                             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                            className="object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                            className="object-contain transition-transform duration-[1200ms] ease-out group-hover:scale-[1.03]"
                           />
                           {art.isSold && (
                             <div className="absolute top-4 left-4 bg-wine text-[#F7F2EC] text-[8px] uppercase tracking-widest font-sans font-semibold px-2.5 py-1.5 rounded shadow-md z-20">
