@@ -5,6 +5,7 @@ import MasonryGallery from "@/components/MasonryGallery";
 import AboutSection from "@/components/AboutSection";
 import CollectionsSection from "@/components/CollectionsSection";
 import StudentsWorkSection from "@/components/StudentsWorkSection";
+import BookIllustrationsSection from "@/components/BookIllustrationsSection";
 import ContactSection from "@/components/ContactSection";
 import Footer from "@/components/Footer";
 
@@ -17,6 +18,7 @@ export default function Home() {
       <AboutSection />
       <CollectionsSection />
       <StudentsWorkSection />
+      <BookIllustrationsSection />
       <ContactSection />
       <Footer />
     </SmoothScroll>
