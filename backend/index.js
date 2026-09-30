@@ -844,16 +844,25 @@ app.post('/api/book-illustrations', authenticateAdmin, handleMultipleUpload, asy
       return res.status(400).json({ error: 'Title and description are required' });
     }
 
-    // Identify images
     const images = [];
     if (req.files && req.files.length > 0) {
-      req.files.forEach(file => {
-        if (isCloudinaryConfigured && file.path.includes('cloudinary')) {
-          images.push(file.path);
+      for (const file of req.files) {
+        if (isCloudinaryConfigured) {
+          try {
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: 'artograph_drawings'
+            });
+            images.push(result.secure_url);
+            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+          } catch (cloudErr) {
+            console.error('Cloudinary upload error:', cloudErr);
+            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+            return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
+          }
         } else {
           images.push(`/uploads/${file.filename}`);
         }
-      });
+      }
     }
 
     if (images.length === 0) {
@@ -901,13 +910,23 @@ app.put('/api/book-illustrations/:id', authenticateAdmin, handleMultipleUpload, 
 
     const newImages = [];
     if (req.files && req.files.length > 0) {
-      req.files.forEach(file => {
-        if (isCloudinaryConfigured && file.path.includes('cloudinary')) {
-          newImages.push(file.path);
+      for (const file of req.files) {
+        if (isCloudinaryConfigured) {
+          try {
+            const result = await cloudinary.uploader.upload(file.path, {
+              folder: 'artograph_drawings'
+            });
+            newImages.push(result.secure_url);
+            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+          } catch (cloudErr) {
+            console.error('Cloudinary upload error:', cloudErr);
+            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+            return res.status(500).json({ error: 'Image upload failed. Cloudinary is required.' });
+          }
         } else {
           newImages.push(`/uploads/${file.filename}`);
         }
-      });
+      }
     }
 
     const allImages = [...existingImages, ...newImages];
